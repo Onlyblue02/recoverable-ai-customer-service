@@ -1,0 +1,20 @@
+{
+  "dataset_version": "1.0.0",
+  "service_cases": [
+    {
+      "service_case_id": "SC-DEMO-001",
+      "user_id": "USR-DEMO-001",
+      "order_id": "ORD-EXISTING-CASE-001",
+      "order_item_id": "ITEM-EXISTING-CASE-001",
+      "case_type": "return",
+      "status": "created",
+      "created_at": "2026-07-02T09:00:00Z",
+      "currency": "CNY",
+      "requested_amount": "499.00",
+      "is_synthetic": true,
+      "scenario_tags": ["existing_service_case"],
+      "business_purpose": "提供一个关系完整的已有模拟售后申请事实。",
+      "expected_behavior": "后续 seed 可导入该记录，但本任务不实现创建、退款或幂等行为。"
+    }
+  ]
+}

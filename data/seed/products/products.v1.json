@@ -1,0 +1,95 @@
+{
+  "dataset_version": "1.0.0",
+  "products": [
+    {
+      "product_id": "PROD-GENERAL-001",
+      "sku": "DEMO-GENERAL-001",
+      "name": "演示便携支架",
+      "category": "general_merchandise",
+      "is_synthetic": true,
+      "scenario_tags": ["normal_return"],
+      "business_purpose": "普通低风险退货订单商品。",
+      "expected_behavior": "可匹配当前有效普通退货政策。"
+    },
+    {
+      "product_id": "PROD-ELECTRONICS-001",
+      "sku": "DEMO-ELECTRONICS-001",
+      "name": "演示无线耳机",
+      "category": "electronics",
+      "is_synthetic": true,
+      "scenario_tags": ["quality_issue"],
+      "business_purpose": "质量问题订单商品。",
+      "expected_behavior": "可匹配当前有效质量问题政策。"
+    },
+    {
+      "product_id": "PROD-GENERAL-002",
+      "sku": "DEMO-GENERAL-002",
+      "name": "演示阅读灯",
+      "category": "general_merchandise",
+      "is_synthetic": true,
+      "scenario_tags": ["return_boundary_date", "overdue_return"],
+      "business_purpose": "普通退货窗口边界与超期订单的共享商品。",
+      "expected_behavior": "日期而非商品类别区分两个订单场景。"
+    },
+    {
+      "product_id": "PROD-HIGH-VALUE-001",
+      "sku": "DEMO-HIGH-VALUE-001",
+      "name": "演示专业相机",
+      "category": "electronics",
+      "is_synthetic": true,
+      "scenario_tags": ["high_value_order"],
+      "business_purpose": "高金额订单商品。",
+      "expected_behavior": "金额风险由后续确定性规则判断。"
+    },
+    {
+      "product_id": "PROD-OTHER-USER-001",
+      "sku": "DEMO-OTHER-USER-001",
+      "name": "演示旅行杯",
+      "category": "general_merchandise",
+      "is_synthetic": true,
+      "scenario_tags": ["order_unauthorized"],
+      "business_purpose": "另一消费者订单中的商品。",
+      "expected_behavior": "不得因商品公开信息而绕过订单归属边界。"
+    },
+    {
+      "product_id": "PROD-EXISTING-CASE-001",
+      "sku": "DEMO-EXISTING-CASE-001",
+      "name": "演示机械键盘",
+      "category": "electronics",
+      "is_synthetic": true,
+      "scenario_tags": ["existing_service_case"],
+      "business_purpose": "已有模拟售后申请的独立订单商品。",
+      "expected_behavior": "售后申请引用该商品行时保持实体一致。"
+    },
+    {
+      "product_id": "PROD-EXPIRED-001",
+      "sku": "DEMO-EXPIRED-001",
+      "name": "演示季节运动套装",
+      "category": "seasonal_sports",
+      "is_synthetic": true,
+      "scenario_tags": ["expired_policy"],
+      "business_purpose": "只被过期政策覆盖的商品类别。",
+      "expected_behavior": "基准日不能使用过期政策形成当前结论。"
+    },
+    {
+      "product_id": "PROD-NO-POLICY-001",
+      "sku": "DEMO-NO-POLICY-001",
+      "name": "演示定制收藏品",
+      "category": "custom_collectible",
+      "is_synthetic": true,
+      "scenario_tags": ["policy_no_result"],
+      "business_purpose": "稳定表达政策无结果场景。",
+      "expected_behavior": "任何政策文件都不应覆盖该类别。"
+    },
+    {
+      "product_id": "PROD-CONFLICT-001",
+      "sku": "DEMO-CONFLICT-001",
+      "name": "演示智能家居中枢",
+      "category": "smart_home",
+      "is_synthetic": true,
+      "scenario_tags": ["conflicting_policies"],
+      "business_purpose": "两份同时有效且结论相反政策的共同适用商品。",
+      "expected_behavior": "后续检索不得选择任一政策生成确定性结论。"
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "dataset_version": "1.0.0",
+  "orders": [
+    {
+      "order_id": "ORD-NORMAL-001",
+      "user_id": "USR-DEMO-001",
+      "status": "delivered",
+      "placed_at": "2026-07-15T09:00:00Z",
+      "delivered_at": "2026-07-18T10:00:00Z",
+      "currency": "CNY",
+      "total_amount": "129.00",
+      "items": [
+        {
+          "order_item_id": "ITEM-NORMAL-001",
+          "product_id": "PROD-GENERAL-001",
+          "quantity": 1,
+          "unit_price": "129.00",
+          "line_total": "129.00"
+        }
+      ],
+      "scenario_tags": ["normal_return"],
+      "business_purpose": "签收 2 天、低金额且属于主要演示用户的普通退货订单。",
+      "expected_behavior": "后续规则可将其作为标准低风险退货候选。"
+    },
+    {
+      "order_id": "ORD-QUALITY-001",
+      "user_id": "USR-DEMO-001",
+      "status": "delivered",
+      "placed_at": "2026-06-28T08:30:00Z",
+      "delivered_at": "2026-07-02T14:00:00Z",
+      "currency": "CNY",
+      "total_amount": "699.00",
+      "items": [
+        {
+          "order_item_id": "ITEM-QUALITY-001",
+          "product_id": "PROD-ELECTRONICS-001",
+          "quantity": 1,
+          "unit_price": "699.00",
+          "line_total": "699.00"
+        }
+      ],
+      "synthetic_issue": {
+        "issue_code": "AUDIO_LEFT_CHANNEL_SILENT",
+        "reported_condition": "左声道无声音，外观无碰撞痕迹"
+      },
+      "scenario_tags": ["quality_issue"],
+      "business_purpose": "签收 18 天且带合成质量问题事实的订单。",
+      "expected_behavior": "后续规则应区分质量问题政策与普通无理由窗口。"
+    },
+    {
+      "order_id": "ORD-BOUNDARY-001",
+      "user_id": "USR-DEMO-001",
+      "status": "delivered",
+      "placed_at": "2026-07-10T11:00:00Z",
+      "delivered_at": "2026-07-13T12:00:00Z",
+      "currency": "CNY",
+      "total_amount": "259.00",
+      "items": [
+        {
+          "order_item_id": "ITEM-BOUNDARY-001",
+          "product_id": "PROD-GENERAL-002",
+          "quantity": 1,
+          "unit_price": "259.00",
+          "line_total": "259.00"
+        }
+      ],
+      "scenario_tags": ["return_boundary_date"],
+      "business_purpose": "在固定基准日恰好签收满 7 个自然日。",
+      "expected_behavior": "后续规则用于验证普通退货窗口的包含性边界。"
+    },
+    {
+      "order_id": "ORD-OVERDUE-001",
+      "user_id": "USR-DEMO-001",
+      "status": "delivered",
+      "placed_at": "2026-07-09T10:00:00Z",
+      "delivered_at": "2026-07-12T12:00:00Z",
+      "currency": "CNY",
+      "total_amount": "259.00",
+      "items": [
+        {
+          "order_item_id": "ITEM-OVERDUE-001",
+          "product_id": "PROD-GENERAL-002",
+          "quantity": 1,
+          "unit_price": "259.00",
+          "line_total": "259.00"
+        }
+      ],
+      "scenario_tags": ["overdue_return"],
+      "business_purpose": "在固定基准日签收满 8 个自然日。",
+      "expected_behavior": "后续规则应识别其超过普通 7 天窗口并进入特例处理。"
+    },
+    {
+      "order_id": "ORD-HIGH-VALUE-001",
+      "user_id": "USR-DEMO-001",
+      "status": "delivered",
+      "placed_at": "2026-07-16T08:00:00Z",
+      "delivered_at": "2026-07-19T15:00:00Z",
+      "currency": "CNY",
+      "total_amount": "9999.00",
+      "items": [
+        {
+          "order_item_id": "ITEM-HIGH-VALUE-001",
+          "product_id": "PROD-HIGH-VALUE-001",
+          "quantity": 1,
+          "unit_price": "9999.00",
+          "line_total": "9999.00"
+        }
+      ],
+      "scenario_tags": ["high_value_order"],
+      "business_purpose": "金额显著高于其他演示订单的样本。",
+      "expected_behavior": "后续风险规则决定是否需要人工审批，本数据不预设阈值。"
+    },
+    {
+      "order_id": "ORD-OTHER-USER-001",
+      "user_id": "USR-DEMO-002",
+      "status": "delivered",
+      "placed_at": "2026-07-14T09:30:00Z",
+      "delivered_at": "2026-07-18T16:00:00Z",
+      "currency": "CNY",
+      "total_amount": "89.00",
+      "items": [
+        {
+          "order_item_id": "ITEM-OTHER-USER-001",
+          "product_id": "PROD-OTHER-USER-001",
+          "quantity": 1,
+          "unit_price": "89.00",
+          "line_total": "89.00"
+        }
+      ],
+      "scenario_tags": ["order_unauthorized"],
+      "business_purpose": "真实存在但属于第二名消费者的订单。",
+      "expected_behavior": "主要演示用户查询该订单时只能得到非泄露的越权结果。"
+    },
+    {
+      "order_id": "ORD-EXISTING-CASE-001",
+      "user_id": "USR-DEMO-001",
+      "status": "delivered",
+      "placed_at": "2026-06-25T10:00:00Z",
+      "delivered_at": "2026-06-30T13:00:00Z",
+      "currency": "CNY",
+      "total_amount": "499.00",
+      "items": [
+        {
+          "order_item_id": "ITEM-EXISTING-CASE-001",
+          "product_id": "PROD-EXISTING-CASE-001",
+          "quantity": 1,
+          "unit_price": "499.00",
+          "line_total": "499.00"
+        }
+      ],
+      "scenario_tags": ["existing_service_case"],
+      "business_purpose": "为已有模拟售后申请提供不干扰核心退货场景的独立订单。",
+      "expected_behavior": "关联售后申请必须引用该订单、用户和商品行。"
+    }
+  ]
+}

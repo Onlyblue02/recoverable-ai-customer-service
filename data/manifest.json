@@ -1,0 +1,66 @@
+{
+  "dataset_name": "racs-core-business-data",
+  "dataset_version": "1.0.0",
+  "reference_date": "2026-07-20",
+  "synthetic_data_only": true,
+  "files": [
+    "seed/users/users.v1.json",
+    "seed/products/products.v1.json",
+    "seed/orders/orders.v1.json",
+    "seed/service_cases/service_cases.v1.json",
+    "knowledge/active/policies.v1.json",
+    "knowledge/expired/policies.v1.json",
+    "knowledge/conflicting/policies.v1.json"
+  ],
+  "scenario_references": {
+    "normal_return": {
+      "user_id": "USR-DEMO-001",
+      "order_id": "ORD-NORMAL-001"
+    },
+    "quality_issue": {
+      "user_id": "USR-DEMO-001",
+      "order_id": "ORD-QUALITY-001"
+    },
+    "return_boundary_date": {
+      "user_id": "USR-DEMO-001",
+      "order_id": "ORD-BOUNDARY-001",
+      "days_since_delivery": 7
+    },
+    "overdue_return": {
+      "user_id": "USR-DEMO-001",
+      "order_id": "ORD-OVERDUE-001",
+      "days_since_delivery": 8
+    },
+    "high_value_order": {
+      "user_id": "USR-DEMO-001",
+      "order_id": "ORD-HIGH-VALUE-001"
+    },
+    "order_not_found": {
+      "user_id": "USR-DEMO-001",
+      "order_id": "ORD-NOT-FOUND-001"
+    },
+    "order_unauthorized": {
+      "requesting_user_id": "USR-DEMO-001",
+      "owner_user_id": "USR-DEMO-002",
+      "order_id": "ORD-OTHER-USER-001"
+    },
+    "active_policy": {
+      "policy_id": "POL-ACTIVE-STANDARD-001"
+    },
+    "expired_policy": {
+      "policy_id": "POL-EXPIRED-SEASONAL-001"
+    },
+    "policy_no_result": {
+      "product_id": "PROD-NO-POLICY-001",
+      "category": "custom_collectible"
+    },
+    "conflicting_policies": {
+      "product_id": "PROD-CONFLICT-001",
+      "category": "smart_home",
+      "policy_ids": [
+        "POL-CONFLICT-SMART-HOME-ALLOW-001",
+        "POL-CONFLICT-SMART-HOME-DENY-001"
+      ]
+    }
+  }
+}

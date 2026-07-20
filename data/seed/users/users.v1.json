@@ -1,0 +1,35 @@
+{
+  "dataset_version": "1.0.0",
+  "users": [
+    {
+      "user_id": "USR-DEMO-001",
+      "role": "consumer",
+      "display_name": "演示消费者甲",
+      "email": "consumer-a@example.invalid",
+      "is_synthetic": true,
+      "scenario_tags": ["normal_return", "quality_issue", "return_boundary_date", "overdue_return", "high_value_order", "order_unauthorized", "order_not_found"],
+      "business_purpose": "作为主要消费者身份覆盖正常、边界、风险和权限场景。",
+      "expected_behavior": "只能访问归属于该用户的订单事实。"
+    },
+    {
+      "user_id": "USR-DEMO-002",
+      "role": "consumer",
+      "display_name": "演示消费者乙",
+      "email": "consumer-b@example.invalid",
+      "is_synthetic": true,
+      "scenario_tags": ["order_unauthorized"],
+      "business_purpose": "持有越权场景中的目标订单。",
+      "expected_behavior": "其订单不得向其他消费者泄露。"
+    },
+    {
+      "user_id": "USR-AGENT-001",
+      "role": "support_agent",
+      "display_name": "演示人工客服",
+      "email": "support-agent@example.invalid",
+      "is_synthetic": true,
+      "scenario_tags": [],
+      "business_purpose": "为后续人工审批任务保留稳定的合成客服身份。",
+      "expected_behavior": "本任务不赋予或实现任何审批行为。"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "dataset_version": "1.0.0",
+  "policies": [
+    {
+      "policy_id": "POL-ACTIVE-STANDARD-001",
+      "policy_version": "1.0.0",
+      "title": "演示商品七日普通退货政策",
+      "source": "synthetic://racs/policies/standard-return/v1",
+      "status": "published",
+      "effective_from": "2026-01-01",
+      "effective_to": "2026-12-31",
+      "applicable_categories": ["general_merchandise", "electronics"],
+      "return_reason": "changed_mind",
+      "return_window_days": 7,
+      "decision": "allow_if_resalable",
+      "content": "签收后七个自然日内，商品保持完好且不影响再次销售时，可以申请普通退货。",
+      "is_synthetic": true,
+      "scenario_tags": ["active_policy", "normal_return", "return_boundary_date", "overdue_return"],
+      "business_purpose": "为普通退货、边界日期和超期日期提供统一有效政策事实。",
+      "expected_behavior": "仅在有效期、类别、原因和商品状态均匹配时作为当前政策证据。"
+    },
+    {
+      "policy_id": "POL-ACTIVE-QUALITY-001",
+      "policy_version": "1.0.0",
+      "title": "演示商品质量问题退货政策",
+      "source": "synthetic://racs/policies/quality-return/v1",
+      "status": "published",
+      "effective_from": "2026-01-01",
+      "effective_to": "2026-12-31",
+      "applicable_categories": ["general_merchandise", "electronics"],
+      "return_reason": "quality_issue",
+      "return_window_days": 30,
+      "decision": "allow_after_issue_verification",
+      "content": "签收后三十个自然日内发现商品质量问题，可在核验问题事实后申请退货。",
+      "is_synthetic": true,
+      "scenario_tags": ["active_policy", "quality_issue"],
+      "business_purpose": "提供区别于普通无理由退货窗口的质量问题政策事实。",
+      "expected_behavior": "质量问题场景使用该政策，不以七日普通窗口直接拒绝。"
+    }
+  ]
+}

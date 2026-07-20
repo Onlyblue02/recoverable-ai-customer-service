@@ -1,0 +1,23 @@
+{
+  "dataset_version": "1.0.0",
+  "policies": [
+    {
+      "policy_id": "POL-EXPIRED-SEASONAL-001",
+      "policy_version": "1.0.0",
+      "title": "演示季节运动商品退货政策（已过期）",
+      "source": "synthetic://racs/policies/seasonal-sports/2025",
+      "status": "expired",
+      "effective_from": "2025-01-01",
+      "effective_to": "2025-12-31",
+      "applicable_categories": ["seasonal_sports"],
+      "return_reason": "changed_mind",
+      "return_window_days": 7,
+      "decision": "allow_if_resalable",
+      "content": "本政策仅适用于二〇二五年度的演示季节运动商品，现已失效。",
+      "is_synthetic": true,
+      "scenario_tags": ["expired_policy"],
+      "business_purpose": "验证基准日前失效的政策不能作为当前结论。",
+      "expected_behavior": "在 2026-07-20 必须被有效期过滤排除。"
+    }
+  ]
+}

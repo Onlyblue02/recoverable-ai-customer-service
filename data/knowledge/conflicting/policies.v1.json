@@ -1,0 +1,43 @@
+{
+  "dataset_version": "1.0.0",
+  "policies": [
+    {
+      "policy_id": "POL-CONFLICT-SMART-HOME-ALLOW-001",
+      "policy_version": "1.0.0",
+      "conflict_group": "CONFLICT-SMART-HOME-001",
+      "title": "演示智能家居十四日退货政策",
+      "source": "synthetic://racs/policies/smart-home/allow/v1",
+      "status": "published",
+      "effective_from": "2026-06-01",
+      "effective_to": "2026-12-31",
+      "applicable_categories": ["smart_home"],
+      "return_reason": "changed_mind",
+      "return_window_days": 14,
+      "decision": "allow_if_resalable",
+      "content": "智能家居商品签收后十四个自然日内，保持完好时可以申请退货。",
+      "is_synthetic": true,
+      "scenario_tags": ["conflicting_policies"],
+      "business_purpose": "冲突组中允许普通退货的当前有效来源。",
+      "expected_behavior": "与同组禁止政策同时命中时不得单独形成确定性结论。"
+    },
+    {
+      "policy_id": "POL-CONFLICT-SMART-HOME-DENY-001",
+      "policy_version": "1.0.0",
+      "conflict_group": "CONFLICT-SMART-HOME-001",
+      "title": "演示智能家居激活后不可退政策",
+      "source": "synthetic://racs/policies/smart-home/deny/v1",
+      "status": "published",
+      "effective_from": "2026-06-01",
+      "effective_to": "2026-12-31",
+      "applicable_categories": ["smart_home"],
+      "return_reason": "changed_mind",
+      "return_window_days": 0,
+      "decision": "deny_after_delivery",
+      "content": "智能家居商品完成交付后不接受普通退货申请。",
+      "is_synthetic": true,
+      "scenario_tags": ["conflicting_policies"],
+      "business_purpose": "冲突组中禁止普通退货的当前有效来源。",
+      "expected_behavior": "与同组允许政策同时命中时必须识别政策冲突。"
+    }
+  ]
+}

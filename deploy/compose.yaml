@@ -1,0 +1,55 @@
+name: racs
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.2-pg17-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-racs}
+      POSTGRES_USER: ${POSTGRES_USER:-racs}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-racs-local-only}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  racs-api:
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
+    command: ["uvicorn", "customer_service.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      RACS_ENVIRONMENT: demo
+      RACS_LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/live')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mock-business-api:
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
+    command: ["uvicorn", "mock_business.main:app", "--host", "0.0.0.0", "--port", "8001"]
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health/live')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres-data:
