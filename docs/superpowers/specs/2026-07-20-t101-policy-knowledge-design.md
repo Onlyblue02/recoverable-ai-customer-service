@@ -130,4 +130,43 @@ T-101 基于 T-001 数据集 `racs-core-business-data` 版本 `1.0.0` 实现独�
 
 ## 9. 验收与发布状态
 
-执行者测试通过后，T-101 状态只能记录为“待 Reviewer”。`docs/CHANGELOG.md` 的 `Unreleased` 记录已经实现且可核实的能力，不创建 `v0.3.0` 正式条目。T-101 完成不代表 T-102、自然语言 Agent、数据库向量检索或阶段二全部能力已经完成。
+初始执行者测试通过后，T-101 状态只能记录为“待 Reviewer”；Reviewer 结论及遗留项处理结果随后记录到任务报告。`docs/CHANGELOG.md` 的 `Unreleased` 只记录已经实现且可核实的能力，不创建 `v0.3.0` 正式条目。T-101 完成不代表 T-102、自然语言 Agent、数据库向量检索或阶段二全部能力已经完成。
+
+## 10. Reviewer 遗留项：公开回答的证据绑定
+
+### 10.1 缺口与目标
+
+初始实现的 `PolicyAnswerResult` 只验证回答对象内部是否自洽，例如 `citations` 的政策 ID 必须与 `candidate_policy_ids` 完全一致。该约束无法识别两组字段被同时伪造的情况，因为结果 Schema 不持有本次检索证据集合。初始测试也只覆盖服务的正常组装路径和结果 Schema 的孤立约束，没有让伪造引用经过 `PolicyAnswerService.answer()` 的公开返回路径。
+
+本遗留项在 T-101 内增加最后一道政策专用证据绑定检查：服务完成政策检索和答案组装后、公开返回前，将答案及引用重新与本次实际检索并选中的当前政策逐项比对。任何不一致都降级为证据不足，且不公开答案或引用。
+
+### 10.2 最小实现
+
+`PolicyAnswerService.answer()` 保持唯一公开入口。唯一当前政策分支先产生类型化答案候选，再执行政策专用证据绑定：
+
+- `candidate_policy_ids` 必须与本次选中的政策 ID 完全一致；
+- 引用的政策 ID、版本、标题、来源、有效期和摘录必须与选中政策一致；
+- 确定性答案和公开消息必须等于从该政策标题、ID 与内容生成的受控模板；
+- 任一条件失败时返回 `INSUFFICIENT_EVIDENCE / CLARIFY / UNGROUNDED_CITATION`，保留实际候选政策 ID 供诊断，但令 `answer` 为空且 `citations` 为空。
+
+回归测试使用恶意答案组装替身生成一个结构上自洽、但引用 ID 不存在于本次检索证据集合的候选结果。测试必须调用 `PolicyAnswerService.answer()`，证明伪造引用无法离开公开服务边界；不得仅调用内部校验函数或 Schema。
+
+### 10.3 T-101 与 T-303 的职责边界
+
+T-101 只负责政策回答内部的证据一致性：政策筛选、当前有效性、冲突处理、答案模板以及政策引用与本次实际检索证据的绑定。它不知道订单、资格、审批或业务操作状态，也不创建通用回复草稿或跨领域门禁。
+
+T-303 将来负责跨政策、已授权订单事实、资格结论、审批结果和工具执行状态的通用最终回复门禁，并统一决定允许发送、安全改写、继续澄清或升级。本遗留项不是 T-303 的提前实现，也不声明通用 Response Gate 已存在。
+
+### 10.4 预计修改范围
+
+- `src/customer_service/rag/schemas.py`
+- `src/customer_service/rag/service.py`
+- `tests/component/rag/test_policy_grounding_guard.py`
+- `ARCHITECTURE.md`
+- `README.md`
+- `TASKS.md`
+- `docs/task-reports/T-101.md`
+- `docs/CHANGELOG.md`
+- 本设计文档
+
+不修改 T-001/T-002 数据，不开始 T-102，不创建 T-303 模块、阶段 Tag 或远程推送。
