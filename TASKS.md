@@ -144,6 +144,17 @@
 
 ### T-101 政策知识与引用回答
 
+**完成状态**
+
+- [x] 2026-07-20 Reviewer 最终复审 PASS；政策引用安全遗留项已关闭，允许提交 T-101 并进入 T-102。
+- 修改：新增基于 T-001 数据集 `1.0.0` 的类型化 JSON 政策目录和确定性问答服务；按商品类别、退货原因、发布状态及包含性有效期筛选政策；当前有效且唯一明确的政策生成带实际 ID、版本、标题、来源、有效期和内容摘录的答案；过期、无结果、冲突、缺少退货原因或多来源含糊时返回结构化澄清/升级结果且不生成确定性结论。
+- 固定用例：组件测试直接读取 T-002 的 `AC-FR03-N-001`、`AC-FR03-E-001/002/003` 和 `AC-FR09-E-001`，使用 `required_entities` 构造查询，不依赖固定自然语言字符串。
+- 验证命令：`uv lock --check`；`uv run pytest tests/unit/rag tests/component/rag -q`；`uv run pytest tests/data tests/evaluation -q`；`uv run ruff format --check .`；`uv run ruff check .`；`uv run mypy src tests`；`uv run pytest`；前端冻结安装、格式、lint、测试与构建；`docker compose -f deploy/compose.yaml config --quiet`。
+- 安全收尾：公开 `PolicyAnswerService.answer()` 在返回前将政策 ID、证据 ID、版本、来源、有效期和内容绑定到本次实际检索并使用的当前政策；绑定失败时安全降级为 `UNGROUNDED_CITATION`，不公开答案或引用；新增 6 项公开路径伪造引用回归测试。
+- 实际结果：实现前测试因缺少 `customer_service.rag` 出现 2 个预期收集错误；初始实现后 T-101 专项测试 19 项通过；安全修复后伪造引用回归 6 项通过、T-101 专项 25 项通过、阶段一基线 34 项通过、全仓 Python 测试 62 项通过；22 个 Python 文件格式检查、Ruff 和 mypy 通过。Reviewer 最终复审 PASS。
+- Reviewer 结论：2026-07-20 最终复审 PASS，政策引用安全遗留项关闭；证据为项目所有者在 Release Manager 任务中的正式确认。
+- 未覆盖风险：仅支持结构化类别/原因输入和精确属性过滤；尚无自然语言抽取、HTTP API、PostgreSQL/pgvector、持久化证据快照、Agent 或界面；冲突只返回升级建议，不创建审批任务；当前只有本地测试证据，没有 CI 链接；通用最终回复门禁仍属于 T-303。
+
 **任务目标**
 
 让用户获得基于当前有效政策、带来源且能够安全拒答的答案。
