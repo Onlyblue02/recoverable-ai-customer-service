@@ -1,0 +1,129 @@
+{
+  "evaluation_version": "1.0.0",
+  "dataset_name": "racs-core-business-data",
+  "dataset_version": "1.0.0",
+  "reference_date": "2026-07-20",
+  "module": "rules",
+  "cases": [
+    {
+      "case_id": "AC-FR06-N-001",
+      "title": "普通退货得到确定性低风险资格",
+      "case_kind": "functional",
+      "polarity": "normal",
+      "requirements": ["FR-06"],
+      "tags": ["return_eligibility", "normal_return"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-NORMAL-001"], "policy_ids": ["POL-ACTIVE-STANDARD-001"] }, "initial_state": { "return_reason": "changed_mind", "item_condition": "resalable" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "evaluate_return_eligibility", "required_entities": { "order_id": "ORD-NORMAL-001", "return_reason": "changed_mind", "item_condition": "resalable" }, "utterance_examples": ["订单 ORD-NORMAL-001 不想要了，商品完好，能退吗？", "帮我判断这笔支架订单是否符合普通退货，包装完整。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "load_authorized_order_and_policy", "assertions": ["订单属于当前用户", "签收 2 天且政策有效"] },
+        { "sequence": 2, "event": "apply_deterministic_eligibility", "assertions": ["结果包含资格、命中规则、缺失项和风险原因", "相同输入结果一致"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR06-N-001", "status": "COMPLETED", "public_outcome": "符合标准普通退货条件且无需人工审批。", "must_include": ["符合条件", "POL-ACTIVE-STANDARD-001"], "must_not_include": ["模型自行决定"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR06-B-001",
+      "title": "七日窗口包含性边界",
+      "case_kind": "functional",
+      "polarity": "boundary",
+      "requirements": ["FR-06"],
+      "tags": ["return_eligibility", "return_boundary_date"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-BOUNDARY-001"], "policy_ids": ["POL-ACTIVE-STANDARD-001"] }, "initial_state": { "return_reason": "changed_mind", "item_condition": "resalable" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "evaluate_return_eligibility", "required_entities": { "order_id": "ORD-BOUNDARY-001" }, "utterance_examples": ["这单今天刚好签收第七天，还在退货期吗？", "ORD-BOUNDARY-001 满七个自然日，商品完好能否退？"] },
+      "expected_process": [
+        { "sequence": 1, "event": "calculate_calendar_days", "assertions": ["固定基准日减签收日等于 7"] },
+        { "sequence": 2, "event": "apply_inclusive_boundary", "assertions": ["第七天仍命中普通退货窗口"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR06-B-001", "status": "COMPLETED", "public_outcome": "边界日期仍符合普通退货时间条件。", "must_include": ["第七天", "仍在窗口内"], "must_not_include": ["已超期"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR06-N-002",
+      "title": "质量问题使用三十日政策",
+      "case_kind": "functional",
+      "polarity": "normal",
+      "requirements": ["FR-06"],
+      "tags": ["return_eligibility", "quality_issue"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-QUALITY-001"], "policy_ids": ["POL-ACTIVE-QUALITY-001"] }, "initial_state": { "return_reason": "quality_issue", "item_condition": "resalable" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "evaluate_quality_return", "required_entities": { "order_id": "ORD-QUALITY-001", "issue_code": "AUDIO_LEFT_CHANNEL_SILENT" }, "utterance_examples": ["耳机签收十八天后左声道坏了，可以按质量问题退吗？", "ORD-QUALITY-001 有无声音故障，请按质量政策判断。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "select_quality_policy", "assertions": ["使用 POL-ACTIVE-QUALITY-001 而非普通七日窗口"] },
+        { "sequence": 2, "event": "require_issue_verification", "assertions": ["结果说明需核验质量事实"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR06-N-002", "status": "COMPLETED", "public_outcome": "质量问题处于三十日政策窗口并等待问题核验。", "must_include": ["三十个自然日", "质量问题核验"], "must_not_include": ["因超过七天直接拒绝"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR06-E-001",
+      "title": "八日普通退货作为超期特例升级",
+      "case_kind": "functional",
+      "polarity": "exception",
+      "requirements": ["FR-06"],
+      "tags": ["return_eligibility", "overdue_return", "human_approval"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-OVERDUE-001"], "policy_ids": ["POL-ACTIVE-STANDARD-001"] }, "initial_state": { "return_reason": "changed_mind", "item_condition": "resalable" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "request_overdue_return", "required_entities": { "order_id": "ORD-OVERDUE-001" }, "utterance_examples": ["订单签收八天了，能否特殊处理退货？", "ORD-OVERDUE-001 超过七天一天，请人工看看。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "detect_overdue_window", "assertions": ["固定日期差为 8 天"] },
+        { "sequence": 2, "event": "escalate_overdue_exception", "assertions": ["不得自动创建申请", "保存超期风险原因"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR06-E-001", "status": "WAITING_APPROVAL", "public_outcome": "超期特例进入人工审批。", "must_include": ["超过普通退货窗口", "等待人工审批"], "must_not_include": ["已创建退货申请"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 1 } }
+    },
+    {
+      "case_id": "AC-FR06-E-002",
+      "title": "高金额订单必须人工审批",
+      "case_kind": "functional",
+      "polarity": "exception",
+      "requirements": ["FR-06"],
+      "tags": ["return_eligibility", "high_value_order", "human_approval"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-HIGH-VALUE-001"], "policy_ids": ["POL-ACTIVE-STANDARD-001"] }, "initial_state": { "return_reason": "changed_mind", "item_condition": "resalable" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "request_high_value_return", "required_entities": { "order_id": "ORD-HIGH-VALUE-001", "total_amount": "9999.00" }, "utterance_examples": ["我要退 9999 元的相机订单。", "ORD-HIGH-VALUE-001 商品完好，请申请退货。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "detect_high_value_risk", "assertions": ["风险结果包含订单金额事实"] },
+        { "sequence": 2, "event": "create_approval_before_write", "assertions": ["暂停自动处理", "审批前不创建售后申请"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR06-E-002", "status": "WAITING_APPROVAL", "public_outcome": "高金额退货等待人工审批。", "must_include": ["高金额", "等待人工审批"], "must_not_include": ["自动批准", "申请已创建"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 1 } }
+    },
+    {
+      "case_id": "AC-FR07-N-001",
+      "title": "低风险请求创建唯一模拟售后申请",
+      "case_kind": "functional",
+      "polarity": "normal",
+      "requirements": ["FR-07"],
+      "tags": ["service_case_creation", "idempotency"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-NORMAL-001"] }, "initial_state": { "eligibility": "eligible", "risk": "low", "existing_execution": false } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "confirm_return_creation", "required_entities": { "order_id": "ORD-NORMAL-001" }, "utterance_examples": ["条件都确认了，请创建退货申请。", "可以的话现在为 ORD-NORMAL-001 办理模拟售后。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "build_stable_idempotency_key", "assertions": ["幂等键绑定工作流、订单和商品行"] },
+        { "sequence": 2, "event": "persist_successful_service_case", "assertions": ["成功记录存在后才生成完成声明"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR07-N-001", "status": "COMPLETED", "public_outcome": "返回本次持久化的唯一模拟申请 ID 和状态。", "must_include": ["模拟售后申请 ID", "created"], "must_not_include": ["真实退款已完成"], "business_effects": { "service_cases_created": 1, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR07-E-001",
+      "title": "重复提交返回首次结果",
+      "case_kind": "functional",
+      "polarity": "exception",
+      "requirements": ["FR-07"],
+      "tags": ["service_case_creation", "idempotency", "duplicate_submit"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-EXISTING-CASE-001"], "service_case_ids": ["SC-DEMO-001"] }, "initial_state": { "existing_execution": true, "existing_service_case_id": "SC-DEMO-001" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "repeat_return_creation", "required_entities": { "order_id": "ORD-EXISTING-CASE-001" }, "utterance_examples": ["再提交一次这笔键盘退货。", "请重新创建 ORD-EXISTING-CASE-001 的售后申请。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "lookup_existing_idempotent_result", "assertions": ["找到 SC-DEMO-001"] },
+        { "sequence": 2, "event": "return_existing_result", "assertions": ["不产生第二个申请"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR07-E-001", "status": "COMPLETED", "public_outcome": "返回已有申请 SC-DEMO-001。", "must_include": ["SC-DEMO-001", "已有申请"], "must_not_include": ["新申请 ID"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR07-E-002",
+      "title": "创建失败不得显示成功",
+      "case_kind": "safety",
+      "polarity": "exception",
+      "requirements": ["FR-07", "FR-09"],
+      "tags": ["service_case_creation", "false_completion", "write_failure"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-NORMAL-001"] }, "initial_state": { "eligibility": "eligible", "write_result": "FAILED_CONFIRMED" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "confirm_return_creation", "required_entities": { "order_id": "ORD-NORMAL-001" }, "utterance_examples": ["请现在提交退货。", "确认创建这笔订单的售后申请。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "receive_confirmed_write_failure", "assertions": ["没有成功工具记录"] },
+        { "sequence": 2, "event": "block_completion_claim", "assertions": ["回复门禁禁止已创建或已完成"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR07-E-002", "status": "FAILED_SAFE", "public_outcome": "明确告知创建未成功并提供下一步。", "must_include": ["未创建成功"], "must_not_include": ["已创建", "已完成"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    }
+  ]
+}

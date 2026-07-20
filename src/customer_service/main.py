@@ -4,7 +4,7 @@ from customer_service.interfaces.api.routes.health import router as health_route
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="RACS API", version="0.1.0")
+    app = FastAPI(title="RACS API", version="0.2.0")
     app.include_router(health_router)
     return app
 

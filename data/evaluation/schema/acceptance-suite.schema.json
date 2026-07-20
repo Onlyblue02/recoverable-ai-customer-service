@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/racs/schemas/acceptance-suite-1.0.0.json",
+  "title": "RACS fixed acceptance case module",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["evaluation_version", "dataset_name", "dataset_version", "reference_date", "module", "cases"],
+  "properties": {
+    "evaluation_version": { "const": "1.0.0" },
+    "dataset_name": { "const": "racs-core-business-data" },
+    "dataset_version": { "const": "1.0.0" },
+    "reference_date": { "const": "2026-07-20" },
+    "module": { "enum": ["routing", "retrieval", "rules", "graph", "experience", "e2e"] },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/case" }
+    }
+  },
+  "$defs": {
+    "fixtureRefs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "user_ids": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "order_ids": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "product_ids": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "policy_ids": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "service_case_ids": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "title", "case_kind", "polarity", "requirements", "tags", "preconditions", "user_input", "expected_process", "expected_terminal_state"],
+      "properties": {
+        "case_id": { "type": "string", "pattern": "^(AC-FR(0[1-9]|1[0-2])-[NEB]-[0-9]{3}|E2E-(STANDARD|HIGH-RISK)-[0-9]{3})$" },
+        "title": { "type": "string", "minLength": 4, "pattern": ".*\\S.*" },
+        "case_kind": { "enum": ["functional", "safety", "e2e"] },
+        "polarity": { "enum": ["normal", "exception", "boundary"] },
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["FR-01", "FR-02", "FR-03", "FR-04", "FR-05", "FR-06", "FR-07", "FR-08", "FR-09", "FR-10", "FR-11", "FR-12"] }
+        },
+        "tags": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "preconditions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dataset_version", "reference_date", "fixture_refs", "initial_state"],
+          "properties": {
+            "dataset_version": { "const": "1.0.0" },
+            "reference_date": { "const": "2026-07-20" },
+            "fixture_refs": { "$ref": "#/$defs/fixtureRefs" },
+            "initial_state": { "type": "object", "minProperties": 1 }
+          }
+        },
+        "user_input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["acceptance_basis", "semantic_intent", "required_entities", "utterance_examples"],
+          "properties": {
+            "acceptance_basis": { "const": "semantic_match" },
+            "semantic_intent": { "type": "string", "minLength": 3, "pattern": ".*\\S.*" },
+            "required_entities": { "type": "object", "minProperties": 1 },
+            "utterance_examples": {
+              "type": "array",
+              "minItems": 2,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 4, "pattern": ".*\\S.*" }
+            }
+          }
+        },
+        "expected_process": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sequence", "event", "assertions"],
+            "properties": {
+              "sequence": { "type": "integer", "minimum": 1 },
+              "event": { "type": "string", "minLength": 3, "pattern": ".*\\S.*" },
+              "assertions": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 4, "pattern": ".*\\S.*" } }
+            }
+          }
+        },
+        "expected_terminal_state": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["terminal_state_id", "status", "public_outcome", "must_include", "must_not_include", "business_effects"],
+          "properties": {
+            "terminal_state_id": { "type": "string", "minLength": 8, "pattern": ".*\\S.*" },
+            "status": { "enum": ["COLLECTING_INFORMATION", "NEEDS_CLARIFICATION", "EVALUATING", "ESCALATED", "WAITING_APPROVAL", "COMPLETED", "REJECTED", "FAILED_SAFE"] },
+            "public_outcome": { "type": "string", "minLength": 8, "pattern": ".*\\S.*" },
+            "must_include": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 2, "pattern": ".*\\S.*" } },
+            "must_not_include": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 2, "pattern": ".*\\S.*" } },
+            "business_effects": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["service_cases_created", "approval_tasks_created"],
+              "properties": {
+                "service_cases_created": { "type": "integer", "minimum": 0, "maximum": 1 },
+                "approval_tasks_created": { "type": "integer", "minimum": 0, "maximum": 1 }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

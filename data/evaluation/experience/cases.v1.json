@@ -1,0 +1,99 @@
+{
+  "evaluation_version": "1.0.0",
+  "dataset_name": "racs-core-business-data",
+  "dataset_version": "1.0.0",
+  "reference_date": "2026-07-20",
+  "module": "experience",
+  "cases": [
+    {
+      "case_id": "AC-FR10-N-001",
+      "title": "Consumer view presents traceable progress and evidence",
+      "case_kind": "functional",
+      "polarity": "normal",
+      "requirements": ["FR-10"],
+      "tags": ["consumer_experience", "observable_state"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-NORMAL-001"], "policy_ids": ["POL-ACTIVE-STANDARD-001"] }, "initial_state": { "stage": "EVALUATING", "authorized": true } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "inspect_return_progress", "required_entities": { "order_id": "ORD-NORMAL-001" }, "utterance_examples": ["Show the current return progress and its supporting policy.", "Where is my return now, and what evidence is being used?"] },
+      "expected_process": [
+        { "sequence": 1, "event": "render_public_progress", "assertions": ["Show the current public workflow stage", "Show only authorized order fields"] },
+        { "sequence": 2, "event": "render_evidence_reference", "assertions": ["Expose the applicable policy identifier", "Do not expose hidden reasoning"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR10-N-001", "status": "EVALUATING", "public_outcome": "The consumer can see the current stage and traceable evidence.", "must_include": ["current stage", "policy reference"], "must_not_include": ["hidden reasoning", "other customer data"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR10-E-001",
+      "title": "Consumer view turns internal failure into an actionable safe message",
+      "case_kind": "safety",
+      "polarity": "exception",
+      "requirements": ["FR-10"],
+      "tags": ["consumer_experience", "safe_error"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-NORMAL-001"] }, "initial_state": { "stage": "EVALUATING", "internal_error": "dependency_timeout" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "inspect_failed_progress", "required_entities": { "order_id": "ORD-NORMAL-001" }, "utterance_examples": ["Why did the return check stop, and what should I do next?", "The status did not update; tell me the safe next step."] },
+      "expected_process": [
+        { "sequence": 1, "event": "sanitize_internal_failure", "assertions": ["Do not display stack traces or hidden reasoning"] },
+        { "sequence": 2, "event": "offer_actionable_recovery", "assertions": ["State that processing is not complete", "Offer retry or human support"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR10-E-001", "status": "FAILED_SAFE", "public_outcome": "The user receives a safe failure explanation and a recovery option.", "must_include": ["not completed", "next step"], "must_not_include": ["stack trace", "completed successfully"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR11-N-001",
+      "title": "Approval view contains the context needed for one decision",
+      "case_kind": "functional",
+      "polarity": "normal",
+      "requirements": ["FR-11"],
+      "tags": ["approval_experience", "human_approval"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-AGENT-001"], "order_ids": ["ORD-HIGH-VALUE-001"], "policy_ids": ["POL-ACTIVE-STANDARD-001"] }, "initial_state": { "stage": "WAITING_APPROVAL", "approval_status": "PENDING", "risk_reason": "high_value" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "review_pending_approval", "required_entities": { "actor_id": "USR-AGENT-001", "order_id": "ORD-HIGH-VALUE-001" }, "utterance_examples": ["Open the pending high-value return for review.", "Show the evidence and risk reason before I decide this approval."] },
+      "expected_process": [
+        { "sequence": 1, "event": "render_approval_context", "assertions": ["Show order summary, evidence and high-value risk reason"] },
+        { "sequence": 2, "event": "enable_terminal_actions", "assertions": ["Offer approve, adjust and reject actions", "Require an explicit human decision"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR11-N-001", "status": "WAITING_APPROVAL", "public_outcome": "The reviewer sees complete context and enabled decision actions.", "must_include": ["risk reason", "approve", "adjust", "reject"], "must_not_include": ["automatically approved"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR11-E-001",
+      "title": "Processed approval cannot be decided twice",
+      "case_kind": "safety",
+      "polarity": "exception",
+      "requirements": ["FR-11"],
+      "tags": ["approval_experience", "duplicate_approval"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-AGENT-001"], "order_ids": ["ORD-HIGH-VALUE-001"] }, "initial_state": { "stage": "COMPLETED", "approval_status": "APPROVED" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "review_processed_approval", "required_entities": { "actor_id": "USR-AGENT-001", "order_id": "ORD-HIGH-VALUE-001" }, "utterance_examples": ["Reopen the approval I already processed.", "Change the completed approval decision from approve to reject."] },
+      "expected_process": [
+        { "sequence": 1, "event": "detect_terminal_decision", "assertions": ["Display the existing terminal decision"] },
+        { "sequence": 2, "event": "disable_duplicate_actions", "assertions": ["Disable all mutation actions", "Do not create another approval record"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR11-E-001", "status": "COMPLETED", "public_outcome": "The processed decision is read-only and remains unchanged.", "must_include": ["already processed"], "must_not_include": ["decision changed", "new approval created"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR12-N-001",
+      "title": "Evaluation output is repeatable and version identified",
+      "case_kind": "functional",
+      "polarity": "normal",
+      "requirements": ["FR-12"],
+      "tags": ["evaluation_report", "repeatability"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "order_ids": ["ORD-NORMAL-001"] }, "initial_state": { "evaluation_version": "1.0.0", "run_input_unchanged": true } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "run_fixed_acceptance", "required_entities": { "evaluation_version": "1.0.0", "dataset_version": "1.0.0" }, "utterance_examples": ["Run the versioned fixed acceptance suite and report the result.", "Repeat this acceptance run against dataset version 1.0.0."] },
+      "expected_process": [
+        { "sequence": 1, "event": "pin_evaluation_inputs", "assertions": ["Record evaluation and dataset versions"] },
+        { "sequence": 2, "event": "produce_reproducible_report", "assertions": ["Report every case by unique ID", "Keep expected outcomes distinct from actual results"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR12-N-001", "status": "COMPLETED", "public_outcome": "A versioned acceptance report can be compared across identical runs.", "must_include": ["evaluation version", "dataset version", "case ID"], "must_not_include": ["unversioned result"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR12-E-001",
+      "title": "Evaluation report preserves failures and limitations",
+      "case_kind": "safety",
+      "polarity": "exception",
+      "requirements": ["FR-12"],
+      "tags": ["evaluation_report", "failure_transparency"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "order_ids": ["ORD-NORMAL-001"] }, "initial_state": { "evaluation_version": "1.0.0", "simulated_case_failure": "AC-FR09-E-002" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "inspect_failed_acceptance", "required_entities": { "evaluation_version": "1.0.0" }, "utterance_examples": ["Report the failed acceptance case without hiding its limitation.", "Summarize this run, including failures and anything it did not cover."] },
+      "expected_process": [
+        { "sequence": 1, "event": "retain_failed_case", "assertions": ["Do not convert a failed case into a pass"] },
+        { "sequence": 2, "event": "report_limitations", "assertions": ["Identify the failed case and untested risk explicitly"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR12-E-001", "status": "FAILED_SAFE", "public_outcome": "The report names the failure and the remaining coverage limitation.", "must_include": ["failed case ID", "limitation"], "must_not_include": ["all cases passed"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    }
+  ]
+}

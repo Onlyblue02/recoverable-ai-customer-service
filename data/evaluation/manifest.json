@@ -1,0 +1,20 @@
+{
+  "suite_name": "racs-fixed-acceptance-suite",
+  "evaluation_version": "1.0.0",
+  "dataset_name": "racs-core-business-data",
+  "dataset_version": "1.0.0",
+  "reference_date": "2026-07-20",
+  "schema": "schema/acceptance-suite.schema.json",
+  "case_files": [
+    "routing/cases.v1.json",
+    "retrieval/cases.v1.json",
+    "rules/cases.v1.json",
+    "graph/cases.v1.json",
+    "experience/cases.v1.json",
+    "e2e/stories.v1.json"
+  ],
+  "coverage_requirements": ["FR-01", "FR-02", "FR-03", "FR-04", "FR-05", "FR-06", "FR-07", "FR-08", "FR-09", "FR-10", "FR-11", "FR-12"],
+  "required_polarities": ["normal", "exception_or_boundary"],
+  "required_themes": ["policy_qa", "order_query", "order_unauthorized", "return_eligibility", "human_approval", "interruption_recovery", "unsupported_answer", "false_completion", "approval_bypass"],
+  "required_e2e_stories": ["E2E-STANDARD-001", "E2E-HIGH-RISK-001"]
+}

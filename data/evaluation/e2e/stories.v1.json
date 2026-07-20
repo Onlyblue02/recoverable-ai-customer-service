@@ -1,0 +1,51 @@
+{
+  "evaluation_version": "1.0.0",
+  "dataset_name": "racs-core-business-data",
+  "dataset_version": "1.0.0",
+  "reference_date": "2026-07-20",
+  "module": "e2e",
+  "cases": [
+    {
+      "case_id": "E2E-STANDARD-001",
+      "title": "Standard return completes once with grounded evidence",
+      "case_kind": "e2e",
+      "polarity": "normal",
+      "requirements": ["FR-01", "FR-02", "FR-03", "FR-04", "FR-05", "FR-06", "FR-07", "FR-09", "FR-10", "FR-12"],
+      "tags": ["standard_return", "policy_qa", "order_query", "return_eligibility", "grounded_response"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-NORMAL-001"], "product_ids": ["PROD-GENERAL-001"], "policy_ids": ["POL-ACTIVE-STANDARD-001"] }, "initial_state": { "stage": "COLLECTING_INFORMATION", "service_case_created": false } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "complete_standard_return", "required_entities": { "user_id": "USR-DEMO-001", "order_id": "ORD-NORMAL-001", "reason": "changed_mind" }, "utterance_examples": ["I want to return the regular item from order ORD-NORMAL-001 because I changed my mind.", "Please check whether ORD-NORMAL-001 can be returned and start it if eligible."] },
+      "expected_process": [
+        { "sequence": 1, "event": "route_return_intent", "assertions": ["Select the return workflow"] },
+        { "sequence": 2, "event": "load_authorized_order", "assertions": ["Return only the requesting user's order snapshot"] },
+        { "sequence": 3, "event": "retrieve_active_policy", "assertions": ["Use POL-ACTIVE-STANDARD-001 at the reference date"] },
+        { "sequence": 4, "event": "collect_required_fields", "assertions": ["Retain order, item and reason across turns"] },
+        { "sequence": 5, "event": "evaluate_eligibility", "assertions": ["Determine that the standard return is eligible"] },
+        { "sequence": 6, "event": "create_service_case_once", "assertions": ["Create one simulated service case", "Return its unique identifier"] },
+        { "sequence": 7, "event": "gate_final_response", "assertions": ["Allow completion only with successful write evidence"] },
+        { "sequence": 8, "event": "present_traceable_result", "assertions": ["Show the terminal state and policy reference"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-E2E-STANDARD-001", "status": "COMPLETED", "public_outcome": "One standard return case is created and reported with its policy basis.", "must_include": ["service case ID", "policy reference", "completed"], "must_not_include": ["approval required", "duplicate service case"], "business_effects": { "service_cases_created": 1, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "E2E-HIGH-RISK-001",
+      "title": "High-risk return pauses for approval and resumes after interruption",
+      "case_kind": "e2e",
+      "polarity": "normal",
+      "requirements": ["FR-01", "FR-02", "FR-04", "FR-05", "FR-06", "FR-07", "FR-08", "FR-09", "FR-10", "FR-11", "FR-12"],
+      "tags": ["high_value_order", "human_approval", "interruption_recovery", "approval_resume", "approval_bypass"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001", "USR-AGENT-001"], "order_ids": ["ORD-HIGH-VALUE-001"], "product_ids": ["PROD-HIGH-VALUE-001"], "policy_ids": ["POL-ACTIVE-STANDARD-001"] }, "initial_state": { "stage": "COLLECTING_INFORMATION", "approval_status": null, "service_case_created": false } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "complete_high_risk_return_with_approval", "required_entities": { "user_id": "USR-DEMO-001", "order_id": "ORD-HIGH-VALUE-001", "reviewer_id": "USR-AGENT-001" }, "utterance_examples": ["Start the return for my high-value order, even if it needs manual review.", "Process ORD-HIGH-VALUE-001 and resume it after an agent approves it."] },
+      "expected_process": [
+        { "sequence": 1, "event": "route_and_load_authorized_order", "assertions": ["Select return workflow", "Verify order ownership"] },
+        { "sequence": 2, "event": "evaluate_high_value_risk", "assertions": ["Identify the configured high-value risk reason"] },
+        { "sequence": 3, "event": "create_approval_checkpoint", "assertions": ["Create one pending approval task", "Do not create a service case yet"] },
+        { "sequence": 4, "event": "persist_interrupt_state", "assertions": ["Persist workflow state and approval context"] },
+        { "sequence": 5, "event": "restore_after_interruption", "assertions": ["Resume at the pending approval checkpoint without repeating prior side effects"] },
+        { "sequence": 6, "event": "commit_human_approval", "assertions": ["Record the reviewer's approval as the unique decision"] },
+        { "sequence": 7, "event": "resume_and_create_once", "assertions": ["Create exactly one simulated service case"] },
+        { "sequence": 8, "event": "gate_and_present_result", "assertions": ["Require approval and successful write evidence before completion", "Present a traceable terminal result"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-E2E-HIGH-RISK-001", "status": "COMPLETED", "public_outcome": "The approved high-risk return resumes and creates exactly one service case.", "must_include": ["human approved", "service case ID", "resumed"], "must_not_include": ["approval bypassed", "duplicate service case"], "business_effects": { "service_cases_created": 1, "approval_tasks_created": 1 } }
+    }
+  ]
+}

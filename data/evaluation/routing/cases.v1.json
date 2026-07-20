@@ -1,0 +1,99 @@
+{
+  "evaluation_version": "1.0.0",
+  "dataset_name": "racs-core-business-data",
+  "dataset_version": "1.0.0",
+  "reference_date": "2026-07-20",
+  "module": "routing",
+  "cases": [
+    {
+      "case_id": "AC-FR01-N-001",
+      "title": "刷新后恢复已确认退货字段",
+      "case_kind": "functional",
+      "polarity": "normal",
+      "requirements": ["FR-01"],
+      "tags": ["conversation_continuity", "refresh_resume"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-NORMAL-001"] }, "initial_state": { "stage": "COLLECTING_INFORMATION", "confirmed_order_id": "ORD-NORMAL-001", "confirmed_return_reason": "changed_mind" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "resume_existing_return_after_refresh", "required_entities": { "item_condition": "resalable" }, "utterance_examples": ["页面刷新了，继续刚才的退货，商品完好。", "接着处理之前那单，东西没有使用痕迹。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "load_existing_workflow", "assertions": ["恢复原 workflow_id 和已确认订单号", "不要求用户重新提供退货原因"] },
+        { "sequence": 2, "event": "merge_new_slot", "assertions": ["保存商品状态并保留既有字段"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR01-N-001", "status": "EVALUATING", "public_outcome": "原退货任务在字段完整后继续进入资格判断。", "must_include": ["任务已继续"], "must_not_include": ["隐藏推理", "重新创建会话"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR01-E-001",
+      "title": "等待审批期间中断后保持原状态",
+      "case_kind": "functional",
+      "polarity": "exception",
+      "requirements": ["FR-01"],
+      "tags": ["interruption_recovery", "checkpoint", "human_approval"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-HIGH-VALUE-001"] }, "initial_state": { "stage": "WAITING_APPROVAL", "checkpoint_persisted": true, "service_restart": true } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "resume_waiting_approval", "required_entities": { "order_id": "ORD-HIGH-VALUE-001" }, "utterance_examples": ["刚才服务断了，我的高金额退货审批到哪了？", "请继续之前等待人工审核的相机退货。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "restore_checkpoint", "assertions": ["恢复原会话、审批 ID 和证据快照"] },
+        { "sequence": 2, "event": "confirm_no_duplicate_execution", "assertions": ["不创建新审批", "不创建售后申请"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR01-E-001", "status": "WAITING_APPROVAL", "public_outcome": "任务仍等待原人工审批且上下文保持一致。", "must_include": ["等待人工审批"], "must_not_include": ["已完成", "新审批 ID"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR02-N-001",
+      "title": "自然语言退货诉求进入退货流程",
+      "case_kind": "functional",
+      "polarity": "normal",
+      "requirements": ["FR-02"],
+      "tags": ["intent_routing", "return_request"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"] }, "initial_state": { "stage": "NEW" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "request_return", "required_entities": { "order_id": null }, "utterance_examples": ["我想退掉刚买的商品。", "有个订单不想要了，帮我办退货。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "classify_intent", "assertions": ["候选意图为退货申请"] },
+        { "sequence": 2, "event": "deterministic_route", "assertions": ["进入退货信息收集", "只询问订单号"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR02-N-001", "status": "NEEDS_CLARIFICATION", "public_outcome": "请求用户补充订单号。", "must_include": ["订单号"], "must_not_include": ["申请已创建"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR02-E-001",
+      "title": "未知诉求两轮澄清无效后升级人工",
+      "case_kind": "functional",
+      "polarity": "exception",
+      "requirements": ["FR-02"],
+      "tags": ["unknown_intent", "clarification_limit"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"] }, "initial_state": { "stage": "NEEDS_CLARIFICATION", "clarification_count": 1 } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "unknown_request", "required_entities": { "provides_actionable_information": false }, "utterance_examples": ["还是那个事情，你看着办。", "我也说不清楚，反正帮我处理。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "reject_low_confidence_route", "assertions": ["不调用业务写工具"] },
+        { "sequence": 2, "event": "reach_clarification_limit", "assertions": ["澄清计数达到二并升级人工"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR02-E-001", "status": "ESCALATED", "public_outcome": "未知诉求安全转人工处理。", "must_include": ["人工处理"], "must_not_include": ["订单已修改", "退货已创建"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR05-N-001",
+      "title": "多轮补齐退货必要字段",
+      "case_kind": "functional",
+      "polarity": "normal",
+      "requirements": ["FR-05"],
+      "tags": ["slot_collection", "multi_turn"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-NORMAL-001"] }, "initial_state": { "stage": "COLLECTING_INFORMATION", "confirmed_order_id": "ORD-NORMAL-001", "confirmed_return_reason": "changed_mind" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "provide_missing_return_field", "required_entities": { "item_condition": "resalable" }, "utterance_examples": ["商品没用过，包装也完整。", "东西保持完好，不影响再次销售。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "extract_item_condition", "assertions": ["保存 item_condition=resalable"] },
+        { "sequence": 2, "event": "check_required_slots", "assertions": ["订单号、原因、商品状态均完整", "不再重复询问已有字段"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR05-N-001", "status": "EVALUATING", "public_outcome": "必要信息完整并进入资格判断。", "must_include": ["信息已完整"], "must_not_include": ["再次提供订单号"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    },
+    {
+      "case_id": "AC-FR05-E-001",
+      "title": "用户更正退货原因后采用最新确认值",
+      "case_kind": "functional",
+      "polarity": "exception",
+      "requirements": ["FR-05"],
+      "tags": ["slot_correction", "latest_value"],
+      "preconditions": { "dataset_version": "1.0.0", "reference_date": "2026-07-20", "fixture_refs": { "user_ids": ["USR-DEMO-001"], "order_ids": ["ORD-QUALITY-001"] }, "initial_state": { "stage": "COLLECTING_INFORMATION", "confirmed_order_id": "ORD-QUALITY-001", "confirmed_return_reason": "changed_mind", "confirmed_item_condition": "resalable" } },
+      "user_input": { "acceptance_basis": "semantic_match", "semantic_intent": "correct_return_reason", "required_entities": { "return_reason": "quality_issue" }, "utterance_examples": ["我更正一下，不是不想要，是左声道没有声音。", "刚才原因说错了，这个耳机有质量问题。"] },
+      "expected_process": [
+        { "sequence": 1, "event": "record_slot_revision", "assertions": ["return_reason 更新为 quality_issue", "保留修订记录"] },
+        { "sequence": 2, "event": "notify_material_change", "assertions": ["公开提示退货原因已更正", "资格判断只使用新值"] }
+      ],
+      "expected_terminal_state": { "terminal_state_id": "TS-FR05-E-001", "status": "EVALUATING", "public_outcome": "质量问题作为最新原因进入资格判断。", "must_include": ["原因已更正"], "must_not_include": ["继续按不想要判断", "申请已创建"], "business_effects": { "service_cases_created": 0, "approval_tasks_created": 0 } }
+    }
+  ]
+}

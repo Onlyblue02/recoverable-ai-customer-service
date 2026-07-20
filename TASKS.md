@@ -108,6 +108,16 @@
 
 ### T-002 固定验收用例
 
+**完成状态**
+
+- [x] 2026-07-20 Reviewer 复审通过；阶段一结论为 PASS，允许发布 `v0.2.0` 并进入 T-101。
+- 修改：基于 T-001 数据集 `1.0.0` 建立固定验收集 `1.0.0`，共 38 个用例；覆盖 FR-01～FR-12 每项至少一个正常用例和一个异常或边界用例，包含政策问答、订单查询与越权、退货资格、人工审批、中断恢复、无依据回答、虚假完成和审批绕过，并固定标准退货及高风险审批恢复两条端到端故事；新增 Draft 2020-12 JSON Schema、清单和一致性测试。
+- Reviewer 修复：Schema 现在拒绝空语义对象、含糊短文本和纯空白内容；自动门禁校验普通用例 ID 与需求映射，并逐场景验证有效、过期、无结果和冲突政策与 T-001 的商品、类别、有效期、状态及完整政策集合关系。新增负例先复现 12 个预期失败，再完成修复。
+- 验证命令：`uv lock --check`；`uv run pytest tests/evaluation -q`；`uv run pytest tests/data tests/evaluation -q`；`uv run ruff format --check .`；`uv run ruff check .`；`uv run mypy src tests`；`uv run pytest`；前端 install/format/lint/test/build；`docker compose -f deploy/compose.yaml config --quiet`。
+- 实际结果：T-002 专项测试 25 项通过；阶段一数据与验收测试 34 项通过；全仓 Python 测试 37 项通过并有 1 条上游弃用警告；Ruff format/check、mypy、锁文件、前端 1 项测试与构建、Compose 配置检查均通过。Reviewer 已复审阻塞修复并给出 PASS。
+- Reviewer 结论：2026-07-20 阶段一复审 PASS，允许发布 `v0.2.0`，允许进入 T-101；证据为项目所有者在 Release Manager 任务中的正式确认。
+- 未覆盖风险：用例仍是功能实现前的静态验收合同，尚未由 T-101 及后续业务能力执行；自然语言尚未验证真实模型改写鲁棒性；界面、审批持久化、中断恢复和业务副作用仅定义可观察期望；缺少 CI 链接；历史 T-001 提交未形成独立任务级边界。
+
 **任务目标**
 
 在功能实现前定义“什么算完成”，防止只按理想演示结果开发。

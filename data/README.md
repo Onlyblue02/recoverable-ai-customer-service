@@ -42,3 +42,13 @@ uv run pytest tests/data
 ```
 
 测试验证版本、文件清单、标识唯一性、实体引用、金额、日期、商品和政策适用范围、关键场景覆盖及合成身份约束。
+
+## 固定验收用例
+
+`evaluation/manifest.json` 是 T-002 固定验收集入口。用例按 routing、retrieval、rules、graph、experience 和 e2e 分组，并通过 `evaluation/schema/acceptance-suite.schema.json` 固定结构。每个用例以语义意图和必要实体作为验收口径，同时提供至少两种自然语言表达示例，不要求完全匹配某一句话。
+
+```text
+uv run pytest tests/evaluation
+```
+
+验收集只定义期望过程和唯一终态，不记录运行结果，也不实现对应业务功能。
