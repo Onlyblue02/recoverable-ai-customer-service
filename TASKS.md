@@ -180,6 +180,18 @@
 
 ### T-102 订单查询与权限边界
 
+**完成状态**
+
+- [x] 2026-07-22 Reviewer 最终审查 PASS；允许创建 T-102 普通任务提交并进入 T-103，当前不发布阶段版本。
+- 修改：新增基于 T-001 数据集 `1.0.0` 的固定 JSON 订单仓库、Mock Business 订单 HTTP API、客户服务 HTTP Gateway 和公开 `OrderQueryService.query()`；公开 payload 仅允许 `order_id`，可信 `user_id` 由独立服务端 `OrderAccessContext` 注入；订单存在性与归属在可信仓库边界判定；不存在与越权公开响应统一防枚举；下游异常稳定安全降级；成功响应按显式订单/商品字段白名单转换。
+- 固定用例：组件测试直接读取并执行 T-002 的 `AC-FR04-N-001`、`AC-FR04-E-001/002/003`，覆盖已授权成功、缺少订单号、不存在和越权，且不依赖完全固定的用户措辞。
+- 验证命令：`.venv\\Scripts\\pytest.exe tests/unit/tools tests/unit/mock_business tests/component/tools -q -p no:cacheprovider --basetemp=.pytest-tmp-t102-targeted`；`.venv\\Scripts\\pytest.exe tests/data tests/evaluation tests/unit/rag tests/component/rag -q -p no:cacheprovider --basetemp=.pytest-tmp-stage-baseline`；`.venv\\Scripts\\pytest.exe -q -p no:cacheprovider --basetemp=.pytest-tmp-full`；`.venv\\Scripts\\ruff.exe format --check .`；`.venv\\Scripts\\ruff.exe check .`；`.venv\\Scripts\\mypy.exe src tests`；`uv lock --check --offline --cache-dir .uv-cache-t102`；前端 format/lint/test/build；`docker compose -f deploy/compose.yaml config --quiet`。
+- Reviewer 修复回归：新增公开 payload 身份/授权字段拒绝、可信上下文不可覆盖、同订单双身份、RuntimeError 脱敏、HTTP 超时/连接失败、无效 JSON、意外状态、错误码不匹配、公开防枚举及仓库内部状态保留测试。
+- 第二轮修复：HTTP Gateway 将成功响应 `order_id` 严格绑定到服务实际发送的规范化请求 ID；不匹配时不返回 `FOUND`，而是进入现有 `dependency_failure/ORDER_LOOKUP_UNAVAILABLE` 脱敏路径。新增真实 `OrderQueryService -> HttpOrderGateway` 串单与空格规范化回归测试。
+- 实际结果：串单安全回归文件 10 项、T-102 专项 36 项、阶段一与 T-101 基线 59 项、全仓 98 项均通过；35 个 Python 文件格式检查、Ruff lint、mypy、锁文件检查、前端格式/lint、1 项测试与构建均通过；保留 1 条 Starlette TestClient 上游弃用警告。当前会话未找到 Docker CLI，因此 Compose 配置检查未执行成功，不记录为通过。
+- Reviewer 结论：最终审查 PASS；允许创建 T-102 普通任务提交并进入 T-103；当前不发布阶段版本。证据为项目所有者在 Release Manager 任务中的正式确认。
+- 未覆盖风险：当前仅提供同步内部组件与 Mock Business API，未接入真实数据库、完整身份认证中间件、重试/熔断、监控或外部业务系统；授权模型只有固定数据中的单一订单所有者，不覆盖客服代查、共享账户或组织级授权；自然语言订单号抽取、退货资格、Agent 工作流和界面不在 T-102；当前只有本地执行证据且没有 CI 链接；Docker Compose 配置需在可解析 `docker` CLI 的环境补验。
+
 **任务目标**
 
 提供售后判断需要的订单事实，并阻止无权访问其他用户订单。

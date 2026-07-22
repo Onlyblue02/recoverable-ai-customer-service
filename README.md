@@ -1,6 +1,6 @@
 # Recoverable AI Customer Service
 
-RACS 是一个可恢复式 AI 售后客服项目。阶段一 `v0.2.0` 已发布；T-101 政策知识与引用回答已通过 Reviewer 最终复审。当前尚未实现订单接口、资格规则、Agent、工作流、审批或产品界面。
+RACS 是一个可恢复式 AI 售后客服项目。阶段一 `v0.2.0` 已发布；T-101 政策知识与引用回答、T-102 订单查询与权限边界均已通过 Reviewer 最终审查。当前尚未实现退货资格规则、Agent、工作流、审批或产品界面。
 
 ## 项目版本与发布
 
@@ -77,4 +77,14 @@ T-101 使用 T-001 固定政策 JSON 提供类型化、确定性的政策筛选�
 uv run pytest tests/unit/rag tests/component/rag
 ```
 
-该组件不包含自然语言抽取、HTTP API、数据库/向量索引、Agent 或工作流；这些能力仍属于后续任务。
+## 订单查询与权限边界
+
+T-102 使用 T-001 固定用户与订单 JSON，通过 Mock Business API 在可信业务边界校验订单归属。公开订单 payload 只接收 `order_id`，服务端通过独立权限上下文注入可信 `user_id`；成功结果只返回订单与商品明细白名单字段。不存在与越权在仓库内部保持区分，但公开结果统一为 `ORDER_UNAVAILABLE`，不携带订单详情或暴露订单是否存在。下游异常统一安全降级为 `ORDER_LOOKUP_UNAVAILABLE`。
+
+```text
+uv run pytest tests/unit/tools tests/unit/mock_business tests/component/tools
+```
+
+T-102 已通过 Reviewer 最终审查并允许进入 T-103；当前实现不包含退货资格、Agent 工作流或界面，且不代表阶段二或 `v0.3.0` 已发布。
+
+T-101 政策知识组件不包含自然语言抽取、HTTP API、数据库/向量索引、Agent 或工作流；这些能力仍属于后续任务。
