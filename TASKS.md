@@ -215,6 +215,19 @@
 
 ### T-103 退货资格规则
 
+**完成状态**
+
+- [x] 2026-07-23 Reviewer 最终审查 PASS；允许创建 T-103 普通任务提交并进入 T-104，当前不发布 `v0.3.0`。
+- 修改：新增规则版本 `1.0.0` 的资格配置、冻结类型化输入输出、确定性 Eligibility Engine，并为 T-101 政策文档保留 T-001 已有的退货窗口字段；高金额阈值固定为 CNY `5000.00`（包含边界）。
+- 规则：普通可再次销售商品在 7 个自然日包含性窗口内为低风险符合；质量问题使用 30 日政策并等待事实核验；普通超期、高金额、政策冲突或证据异常要求人工审批；缺少原因、商品状态、问题代码、签收日期或目标商品时返回缺失项，不猜测。
+- 固定用例：组件测试通过已授权订单服务、T-001 商品与政策数据和公开 Eligibility Engine 执行 T-002 的 `AC-FR06-N-001/002`、`AC-FR06-B-001`、`AC-FR06-E-001/002`。
+- Reviewer 修复：唯一政策的 `decision` 现在是资格判断的强制门禁；普通原因仅支持 `allow_if_resalable`，质量原因仅支持 `allow_after_issue_verification`，明确 `deny` 返回确定性不符合资格，未知或原因/决策错配返回 `requires_approval/POLICY_EVIDENCE_INSUFFICIENT`。新增 7 项公开引擎对抗及保留回归测试。
+- Reviewer 第二轮修复：高金额与超期风险在唯一政策 decision 之前收集；任一已知高风险不会被 `deny`、未知或原因/决策错配覆盖。多风险结果固定按 `OVERDUE_EXCEPTION`、`HIGH_VALUE_ORDER` 排序；低金额且窗口内的 `deny` 仍确定性不符合资格。新增 6 项公开引擎高风险优先级回归测试。
+- 验证命令：`.venv\\Scripts\\pytest.exe tests/unit/eligibility tests/component/eligibility -q`；`.venv\\Scripts\\pytest.exe tests/data tests/evaluation tests/unit/rag tests/component/rag tests/unit/tools tests/unit/mock_business tests/component/tools -q`；`.venv\\Scripts\\pytest.exe -q`；Ruff format/check；mypy；`uv lock --check --offline --cache-dir .uv-cache-t103`；前端 format/lint/test/build；Compose 配置检查。
+- 实际结果：初始实现前专项测试出现 3 个预期模块缺失收集错误；第一轮 Reviewer 对抗测试修复前复现 5 个失败路径；第二轮高风险优先级回归修复前复现 6 个失败路径。最终 T-103 专项 39 项、既有阶段基线 95 项、全仓 137 项通过；42 个 Python 文件格式检查、Ruff lint、mypy、65 包锁文件检查、前端格式/lint、1 项测试和构建通过；保留 1 条 Starlette TestClient 上游弃用警告。当前会话无法识别 Docker CLI，Compose 未执行成功且未记录为通过。
+- Reviewer 结论：2026-07-23 最终审查 PASS；允许创建 T-103 普通任务提交并进入 T-104，当前不发布 `v0.3.0`。证据为项目所有者在 Release Manager 任务中的正式确认。
+- 未覆盖风险：质量事实仅标记待核验，不执行核验；规则仅覆盖当前固定原因、类别、CNY 阈值和单目标商品；尚未接入真实认证/数据库、审批持久化、自然语言抽取、Agent 或工作流；当前只有本地验证证据，没有 CI 链接；Docker Compose 配置需在可解析 `docker` CLI 的环境补验。
+
 **任务目标**
 
 使用明确、可重复的业务规则判断退货资格和风险，而不是让 AI 自由决定。

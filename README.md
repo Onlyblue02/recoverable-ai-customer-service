@@ -1,6 +1,6 @@
 # Recoverable AI Customer Service
 
-RACS 是一个可恢复式 AI 售后客服项目。阶段一 `v0.2.0` 已发布；T-101 政策知识与引用回答、T-102 订单查询与权限边界均已通过 Reviewer 最终审查。当前尚未实现退货资格规则、Agent、工作流、审批或产品界面。
+RACS 是一个可恢复式 AI 售后客服项目。阶段一 `v0.2.0` 已发布；T-101、T-102、T-103 均已通过 Reviewer 最终审查。当前尚未实现售后申请创建、Agent、工作流、审批或产品界面。
 
 ## 项目版本与发布
 
@@ -88,3 +88,13 @@ uv run pytest tests/unit/tools tests/unit/mock_business tests/component/tools
 T-102 已通过 Reviewer 最终审查并允许进入 T-103；当前实现不包含退货资格、Agent 工作流或界面，且不代表阶段二或 `v0.3.0` 已发布。
 
 T-101 政策知识组件不包含自然语言抽取、HTTP API、数据库/向量索引、Agent 或工作流；这些能力仍属于后续任务。
+
+## 退货资格规则
+
+T-103 使用版本化规则配置和确定性 Eligibility Engine，消费已授权订单事实、目标商品事实、当前政策证据及结构化退货信息。普通退货只有在政策明确为 `allow_if_resalable` 时才进入包含第七天的资格判断；质量问题只有在政策明确为 `allow_after_issue_verification` 时才返回三十日窗口内待核验结果。明确 `deny` 在低风险场景返回不符合资格，未知或原因错配的决策安全升级。普通退货超期、政策冲突和 CNY `5000.00` 及以上高金额订单要求人工审批；已知超期或高金额风险优先于政策 decision，不会被 `deny`、未知或错配结论覆盖；信息不足时只返回缺失项。
+
+```text
+uv run pytest tests/unit/eligibility tests/component/eligibility
+```
+
+T-103 仅输出资格和审批要求，不创建审批任务或售后申请；T-104 尚未开始。

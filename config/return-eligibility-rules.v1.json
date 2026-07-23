@@ -1,0 +1,10 @@
+{
+  "rule_version": "1.0.0",
+  "reference_date": "2026-07-20",
+  "high_value": {
+    "currency": "CNY",
+    "threshold": "5000.00"
+  },
+  "eligible_order_status": "delivered",
+  "resalable_item_condition": "resalable"
+}

@@ -40,6 +40,7 @@ class PolicyDocument(BaseModel):
     effective_to: date
     applicable_categories: tuple[str, ...] = Field(min_length=1)
     return_reason: str = Field(min_length=1)
+    return_window_days: int = Field(default=0, ge=0)
     decision: str = Field(min_length=1)
     content: str = Field(min_length=1)
     conflict_group: str | None = None
