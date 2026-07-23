@@ -254,6 +254,19 @@
 
 ### T-104 模拟售后申请与重复保护
 
+**完成状态**
+
+- [x] 2026-07-23 Reviewer 阶段二最终复审 PASS；允许发布 `v0.3.0` 并进入 T-201。
+- 修改：新增公开 `ServiceCaseService.create()`、冻结 Schema、服务端身份上下文、可注入的进程内模拟申请仓库及 T-001 现有申请种子导入。只有已授权订单、绑定商品行和低风险 `eligible` 资格结果可创建申请；公开响应使用明确白名单。
+- 幂等：内部键由可信 `user_id + order_id + order_item_id` 规范化派生；公开 payload 不得指定 `workflow_id`、幂等键或资格结论。重复调用返回同一首次确认记录，不产生第二条申请；T-001 的 `SC-DEMO-001` 也以同一可信键映射复用，不改写版本化数据。
+- Reviewer 修复：资格结论现由独立服务端 `ServiceCaseEligibilityContext` 注入，且 T-103 `EligibilityResult` 绑定实际订单、商品行、产品和规则版本。T-104 在写入前逐字段核对绑定；existing 与 created 均要求最终 `created` 状态及用户、订单、商品行和键完全一致，不确认或错绑定记录统一安全失败。
+- Reviewer 第二轮修复：created 确认的状态/绑定校验和白名单摘要构造现与仓库调用处于同一安全异常边界；空或纯空白申请 ID 等无法构造 `ServiceCaseSummary` 的畸形确认稳定返回 `failed_safe/SERVICE_CASE_WRITE_FAILED`，不向公开调用方传播 Pydantic 校验细节。
+- 安全失败：资格不符、需审批或商品行不绑定时不写入；仓库异常、空确认或非 `created` 确认返回 `failed_safe/SERVICE_CASE_WRITE_FAILED`，不带申请 ID，且不宣称已创建或已完成。
+- 固定用例：组件测试直接使用 T-002 `AC-FR07-N-001`、`AC-FR07-E-001`、`AC-FR07-E-002` 的结构化实体与预期，调用公开服务路径，不依赖固定自然语言。
+- 验证命令：`.venv\\Scripts\\pytest.exe tests/unit/service_cases tests/component/service_cases -q -p no:cacheprovider --basetemp=.pytest-tmp-t104-targeted`；`.venv\\Scripts\\pytest.exe tests/data tests/evaluation tests/unit/rag tests/component/rag tests/unit/tools tests/unit/mock_business tests/component/tools tests/unit/eligibility tests/component/eligibility -q -p no:cacheprovider --basetemp=.pytest-tmp-t104-baseline`；`.venv\\Scripts\\pytest.exe -q -p no:cacheprovider --basetemp=.pytest-tmp-t104-full`；Ruff format/check；mypy；`uv lock --check --offline --cache-dir .uv-cache-t104`；前端 format/lint/test/build；Compose 配置检查。
+- 实际结果：测试先行时因缺少 `customer_service.service_cases` 出现 2 个预期收集错误；第二轮畸形确认回归修复前复现 1 个未捕获 `ValidationError` 与 1 个空白 ID 误成功路径。修复后 T-104 专项 65 项、阶段基线 135 项、全仓 163 项通过。48 个 Python 文件格式检查、Ruff lint、mypy、65 包锁文件检查、前端格式/lint、1 项测试和构建通过；保留 1 条 Starlette TestClient 上游弃用警告。当前会话无法识别 Docker CLI，Compose 未执行成功且未记录为通过。
+- 未覆盖风险：申请仅保存在单一进程内存，不支持服务重启、跨进程并发或分布式幂等；不执行退款、不创建审批任务、不恢复审批后的写入；真实认证、数据库、自然语言抽取、Agent、工作流和界面均不在本任务范围。
+
 **任务目标**
 
 完成低风险退货的业务闭环，并保证重复提交不会产生多个申请。

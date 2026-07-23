@@ -3,6 +3,7 @@ from datetime import date
 from customer_service.eligibility.config import EligibilityRuleConfig
 from customer_service.eligibility.schemas import (
     EligibilityConclusion,
+    EligibilityInputBinding,
     EligibilityRequest,
     EligibilityResult,
     EligibilityStatus,
@@ -19,6 +20,9 @@ class EligibilityEngine:
         self._config = config
 
     def evaluate(self, request: EligibilityRequest) -> EligibilityResult:
+        return self._bind_result(self._evaluate(request), request=request)
+
+    def _evaluate(self, request: EligibilityRequest) -> EligibilityResult:
         as_of = request.as_of or self._config.reference_date
         missing = self._missing_fields(request)
         if missing:
@@ -162,6 +166,22 @@ class EligibilityEngine:
             matched_rule_ids=(boundary_rule,),
             days=days,
             message=message,
+        )
+
+    def _bind_result(
+        self, result: EligibilityResult, *, request: EligibilityRequest
+    ) -> EligibilityResult:
+        if request.item is None:
+            return result
+        return result.model_copy(
+            update={
+                "input_binding": EligibilityInputBinding(
+                    order_id=request.order.order_id,
+                    order_item_id=request.item.order_item_id,
+                    product_id=request.item.product_id,
+                    rule_version=self._config.rule_version,
+                )
+            }
         )
 
     @staticmethod

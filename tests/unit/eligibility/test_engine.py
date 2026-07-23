@@ -114,6 +114,16 @@ def test_standard_return_is_deterministic_and_eligible() -> None:
     assert first.applicable_policy_ids == ("POL-STANDARD-001",)
 
 
+def test_result_binds_the_evaluated_order_item_and_rule_version() -> None:
+    result = engine().evaluate(request())
+
+    assert result.input_binding is not None
+    assert result.input_binding.order_id == "ORD-TEST-001"
+    assert result.input_binding.order_item_id == "ITEM-TEST-001"
+    assert result.input_binding.product_id == "PROD-TEST-001"
+    assert result.input_binding.rule_version == result.rule_version
+
+
 def test_seventh_day_is_inclusive() -> None:
     result = engine().evaluate(
         request(order=order(delivered_at=datetime.fromisoformat("2026-07-13T12:00:00+00:00")))

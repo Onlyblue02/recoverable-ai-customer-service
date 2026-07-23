@@ -71,6 +71,17 @@ class EligibilityRequest(BaseModel):
     as_of: date | None = None
 
 
+class EligibilityInputBinding(BaseModel):
+    """Deterministic facts used for the eligibility decision."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    order_id: str = Field(min_length=1)
+    order_item_id: str = Field(min_length=1)
+    product_id: str = Field(min_length=1)
+    rule_version: str = Field(min_length=1)
+
+
 class EligibilityResult(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -84,6 +95,7 @@ class EligibilityResult(BaseModel):
     requires_human_approval: bool
     days_since_delivery: int | None = Field(default=None, ge=0)
     message: str = Field(min_length=1)
+    input_binding: EligibilityInputBinding | None = None
 
     @model_validator(mode="after")
     def validate_result_contract(self) -> Self:
