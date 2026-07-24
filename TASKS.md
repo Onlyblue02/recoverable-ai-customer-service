@@ -329,6 +329,18 @@
 
 ### T-202 多轮信息收集与更正
 
+**完成状态**
+
+- [x] 2026-07-24 Reviewer 最终审查 PASS；允许创建 T-202 普通任务提交并进入 T-203，当前不发布 `v0.4.0`。
+- 修改：新增冻结的公开收集请求、可信上下文、槽位修订记录和结构化结果，以及公开 `ReturnInformationCollectionService.collect()`。只收集订单号、退货原因和商品状态，不调用既有业务服务。
+- 规则：缺失项固定优先级为订单号、退货原因、商品状态，每轮只提出一个问题；用户更正覆盖当前确认值并保留不可变修订历史；全部槽位齐全时仅进入 `EVALUATING`，不创建申请。
+- 固定用例：组件测试直接执行 T-002 `AC-FR05-N-001`、`AC-FR05-E-001`，覆盖分多轮补齐与原因更正。
+- 验证命令：`.venv\\Scripts\\pytest.exe tests/unit/collection tests/component/collection -q -p no:cacheprovider --basetemp=.pytest-tmp-t202-targeted-final`；`.venv\\Scripts\\pytest.exe -q -p no:cacheprovider --basetemp=.pytest-tmp-t202-full-final`；Ruff format/check；mypy；前端 format/lint/test/build。
+- 实际结果：T-202 专项 7 项、全仓 Python 测试 188 项通过；60 个 Python 文件格式检查、Ruff lint、mypy、前端格式/lint、1 项测试和构建通过；保留 1 条 Starlette TestClient 上游弃用警告。离线锁文件检查与 Docker Compose 的既有环境限制未记为通过。
+- Reviewer 修复：原因更正现在优先解析“不是旧值，是新值”的新值，支持 quality_issue 与 changed_mind 双向更正并保存连续修订；纯空白可信订单号规范化为缺失并稳定询问订单号。新增 7 条公开路径回归，专项测试增至 14 项、修复后全仓 Python 测试 195 项均通过；本轮仍等待 Reviewer 复审，未标记 PASS。
+- Reviewer 第二轮修复：原因与商品状态的“不是旧值，是新值”现在覆盖当前受限词表的全部已声明表达，避免被否定旧值抢占；新增原因同义词和商品状态双向更正、连续修订与下一轮上下文回归，专项测试增至 20 项、修复后全仓 Python 测试 201 项均通过；Reviewer 最终复审 PASS。
+- 未覆盖风险：仅为受限关键词/模式收集，未持久化会话或恢复；不执行资格判断、申请创建、T-203 编排、审批、Agent、工作流、HTTP API 或界面。
+
 **任务目标**
 
 在多轮对话中补齐退货所需信息，并正确处理用户更正。
