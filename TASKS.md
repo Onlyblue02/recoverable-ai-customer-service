@@ -293,6 +293,18 @@
 
 ### T-201 诉求识别与流程引导
 
+**完成状态**
+
+- [x] 2026-07-24 Reviewer 最终审查 PASS；允许创建 T-201 普通任务提交并进入 T-202，当前不发布新版本 Tag。
+- 修改：新增冻结的路由请求、可信上下文和结果 Schema，以及公开 `IntentRoutingService.route()`。确定性识别有限中文关键词/订单号模式，输出政策、订单、退货、继续退货、澄清或人工升级动作；不调用业务服务、不创建业务副作用。
+- 规则：可信上下文存在进行中退货任务时优先继续，普通消息不能重置任务；未知首次只询问政策/订单/退货中的一个选择，未知第二次固定转人工。低确定性输入的 `business_operation_requested=false`。
+- 固定用例：组件测试直接执行 T-002 的 `AC-FR02-N-001` 和 `AC-FR02-E-001`，覆盖退货路由和未知两轮升级，且不依赖单一固定措辞。
+- 验证命令：`.venv\\Scripts\\pytest.exe tests/unit/routing tests/component/routing -q -p no:cacheprovider --basetemp=.pytest-tmp-t201-targeted`；`.venv\\Scripts\\pytest.exe -q -p no:cacheprovider --basetemp=.pytest-tmp-t201-full`；Ruff format/check；mypy；`uv lock --check --offline --cache-dir .uv-cache-t201`；前端 format/lint/test/build；Compose 配置检查。
+- 实际结果：测试先行时公共类型与已有路由模块未对齐，出现 1 个预期收集错误；对齐后 T-201 专项 11 项通过、全仓 Python 测试 174 项通过。54 个 Python 文件格式检查、Ruff lint、mypy、前端格式/lint、1 项测试和构建通过。离线锁文件检查未通过：缓存缺少 `fastapi`；当前会话无法识别 Docker CLI，Compose 未执行成功；两项均未记为通过，须在联网或具备 Docker CLI 的环境中于 v1.0.0 前关闭或明确处理。
+- Reviewer 修复：显式退货行为现在优先于同句订单号和资格问句；订单查询必须含明确查询行为，单独订单号或“订单”名词不再抢占政策咨询。新增公开路径混合表达和重复执行回归，专项测试由 11 项增至 15 项、修复后全仓 Python 测试 178 项均通过；本轮仍等待 Reviewer 复审，未标记 PASS。
+- Reviewer 第二轮修复：明确“了解/咨询/查询/知道 + 退货政策、规则或条件”优先进入政策咨询；退货申请只接受直接申请/执行表达，避免政策咨询反向误判。新增 3 条公开路径参数化回归，专项测试增至 18 项、修复后全仓 Python 测试 181 项均通过；Reviewer 最终复审 PASS。
+- 未覆盖风险：识别器不是通用自然语言理解，不能替代模型分类器；不保存会话状态，不执行 T-202 槽位收集/修订、T-203 端到端编排、审批、真实业务操作、Agent、工作流或界面。Docker Compose 启动、健康检查和初始化仍因 Docker CLI 缺失未验证，须在 v1.0.0 前关闭或明确记录。
+
 **任务目标**
 
 识别用户当前售后诉求，并将用户引导到政策、订单、退货或人工处理流程。
