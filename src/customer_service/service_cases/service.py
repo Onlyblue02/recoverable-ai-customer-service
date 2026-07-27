@@ -1,3 +1,4 @@
+from customer_service.approvals.schemas import ApprovalDecision, ApprovalStatus, ApprovalTaskSummary
 from customer_service.service_cases.repository import (
     ServiceCaseDraft,
     ServiceCaseRepository,
@@ -70,6 +71,62 @@ class ServiceCaseService:
                 request=request,
                 access_context=access_context,
                 idempotency_key=key,
+            ):
+                return self._safe_failure()
+            assert created is not None
+            return ServiceCaseResult(
+                status=ServiceCaseStatus.CREATED,
+                error_code=None,
+                message="模拟售后申请已创建。",
+                service_case=self._summary(created),
+            )
+        except Exception:
+            return self._safe_failure()
+
+    def create_after_approval(
+        self, approval: ApprovalTaskSummary, *, access_context: ServiceCaseAccessContext
+    ) -> ServiceCaseResult:
+        """Controlled T-302 continuation; approval facts are server-read by recovery."""
+        if (
+            approval.status is not ApprovalStatus.APPROVED
+            or approval.decision is not ApprovalDecision.APPROVE
+            or approval.user_id != access_context.current_user_id
+        ):
+            return self._safe_failure()
+        request = ServiceCaseCreateRequest(
+            order=approval.order, order_item_id=approval.order_item_id
+        )
+        eligibility_context = ServiceCaseEligibilityContext(eligibility=approval.eligibility)
+        if not self._eligibility_binds_to_request(
+            eligibility_context=eligibility_context, request=request
+        ):
+            return self._safe_failure()
+        return self._create_verified(request, access_context=access_context, allow_approved=True)
+
+    def _create_verified(
+        self,
+        request: ServiceCaseCreateRequest,
+        *,
+        access_context: ServiceCaseAccessContext,
+        allow_approved: bool = False,
+    ) -> ServiceCaseResult:
+        key = self._idempotency_key(request, access_context=access_context)
+        try:
+            existing = self._repository.find_by_idempotency_key(key)
+            if existing is not None:
+                return self._existing(
+                    existing, request=request, access_context=access_context, idempotency_key=key
+                )
+            created = self._repository.create(
+                draft=ServiceCaseDraft(
+                    user_id=access_context.current_user_id,
+                    order_id=request.order.order_id,
+                    order_item_id=request.order_item_id,
+                    idempotency_key=key,
+                )
+            )
+            if not self._confirmed_case_binds_to_request(
+                created, request=request, access_context=access_context, idempotency_key=key
             ):
                 return self._safe_failure()
             assert created is not None
