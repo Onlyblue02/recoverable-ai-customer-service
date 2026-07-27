@@ -13,6 +13,7 @@ web/*.tsbuildinfo
 .pnpm-store/
 playwright-report/
 test-results/
+reports/evaluations/
 .DS_Store
 .idea/
 .vscode/

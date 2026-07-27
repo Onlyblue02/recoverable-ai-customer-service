@@ -260,6 +260,7 @@ T-000 只创建可重复安装、启动和验证最小工程所需的主包、�
 | T-201 | `agents/supervisor`、`orchestration/routing.py`、相关 Prompt 与 Graph 测试 |
 | T-202 | 工作流状态、字段收集与更正节点及测试 |
 | T-203 | 标准退货 Graph、`application/services` 与端到端流程测试 |
+| T-204 | 模型适配端口、单一供应商实现、确定性 Fake、Prompt/Schema 与专项评测 |
 | T-301 | 审批领域模型、应用服务、API 和审批测试 |
 | T-302 | `infrastructure/checkpoints`、恢复逻辑、检查点相关迁移及恢复测试 |
 | T-303 | `domain/validation`、回复节点及安全测试 |

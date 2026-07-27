@@ -19,7 +19,7 @@
 | 工作流 | LangGraph | 显式状态、条件路由、检查点、中断与恢复 |
 | 数据库 | PostgreSQL | 业务数据、工作流状态、审批、审计和评测 |
 | 向量能力 | pgvector | 首版政策语义检索 |
-| 模型接入 | 自定义 ModelGateway + 单一供应商适配器 | 隔离业务代码与具体模型 SDK |
+| 模型接入 | 自定义 ModelGateway + DeepSeek HTTP 适配器 + 确定性 Fake | 隔离业务代码与具体模型 SDK |
 | HTTP Client | HTTPX | 调用 Mock Business API |
 | 测试 | pytest + pytest-asyncio + Docker Compose 测试配置 | 单元、异步与真实数据库集成测试 |
 | 前端测试 | Vitest + Testing Library + Playwright | 组件和端到端界面测试 |
@@ -114,15 +114,17 @@ FastAPI 路由只做协议转换和输入校验，不包含资格规则、工作
 
 ### 5.1 ModelGateway
 
-应用依赖内部协议，不直接依赖具体供应商 SDK：
+应用依赖内部协议，不直接依赖具体供应商 SDK。T-204 的唯一真实供应商是 DeepSeek，通过 HTTPX 调用其 OpenAI 兼容 Chat Completions 边界；模型名称由环境变量配置，未引入供应商 SDK：
 
 ```text
-classify_intent(input) -> IntentResult
-extract_slots(input) -> SlotExtractionResult
-draft_policy_answer(input, evidence) -> ResponseDraft
+generate(ModelRequest) -> ModelResponse
 ```
 
-第一版本只实现一个真实供应商适配器和一个确定性测试替身。不建设多供应商路由、自动降本或模型 A/B 平台。
+请求任务白名单仅包含意图候选、退货字段候选、更正候选和受本次证据集合约束的语言草稿。结构化输出经 Pydantic 校验；无效 JSON 或不符合 Schema 时最多再发起一次受控修复请求，仍失败即返回安全降级。证据草稿的引用 ID 必须属于本次请求的证据集合。
+
+第一版本只实现一个真实供应商适配器和一个确定性测试替身。不建设多供应商路由、自动降本或模型 A/B 平台。Fake 不读取环境变量、不调用网络，用于基础回归和组件测试。
+
+模型不得决定订单归属、退货资格、风险等级、人工审批、售后申请创建或质量门禁；这些结果继续只能来自 T-102～T-104、T-203 及后续确定性组件。
 
 首版审批摘要由结构化订单事实、政策证据、规则结果和风险原因通过确定性模板生成，不定义独立模型摘要接口。只有模板无法满足已验证展示需求时才增加可选模型润色，且关键字段仍由程序填充和校验。
 
@@ -134,7 +136,7 @@ draft_policy_answer(input, evidence) -> ResponseDraft
 - 供应商条款允许所需的演示使用；
 - 评测报告记录模型标识与配置。
 
-具体模型名称通过配置提供，不写死在领域或工作流代码中。未经固定评测，不宣称模型达到某项实际准确率。
+具体模型名称通过 `DEEPSEEK_MODEL` 配置提供，不写死在领域或工作流代码中。`DEEPSEEK_API_KEY`、可选 `DEEPSEEK_BASE_URL`、`DEEPSEEK_TIMEOUT_SECONDS` 和 `DEEPSEEK_CONFIG_VERSION` 均只从本地环境读取；密钥不得进入日志、测试、报告或 Git。未经固定评测，不宣称模型达到某项实际准确率。
 
 ### 5.3 Prompt 管理
 

@@ -30,7 +30,7 @@
 | `v0.1.0` | T-000 | 工程基线 |
 | `v0.2.0` | T-001～T-002 | 产品基线 |
 | `v0.3.0` | T-101～T-104 | 基础业务能力 |
-| `v0.4.0` | T-201～T-203 | AI 售后流程 |
+| `v0.4.0` | T-201～T-204 | AI 售后流程与模型适配 |
 | `v0.5.0` | T-301～T-304 | 人工协作与恢复 |
 | `v1.0.0` | T-401～T-404 | 完整 MVP |
 
@@ -366,6 +366,16 @@
 
 ### T-203 标准退货端到端流程
 
+**完成状态**
+
+- [x] 2026-07-25 Reviewer 最终审查 PASS；允许创建 T-203 普通任务提交并进入 T-204。未开始 T-301，未创建 Tag 或远程推送。
+- 修改：新增 T-203 专用的最小顺序编排服务，显式组合 T-201 路由、T-202 收集、T-102 授权订单、T-101 政策引用、T-103 资格与 T-104 模拟申请；公开输入只含消息，身份与槽位由可信上下文注入。
+- 安全：信息不完整时仅收集；订单不可访问、政策不足、非唯一商品行、资格不符合/需审批或写入失败均安全停止且不创建审批任务。只有实际 `created`/`existing` 申请、已授权订单、政策引用和低风险资格同时存在才返回 `COMPLETED`；越权结果不回显订单号。
+- 固定故事：组件测试通过公开路径执行 T-002 `E2E-STANDARD-001`，覆盖政策引用、唯一申请、重复调用同 ID、缺失信息零写入与越权零泄露。
+- 验证命令：`.venv\\Scripts\\pytest.exe tests/component/orchestration -q -p no:cacheprovider --basetemp=.pytest-tmp-t203-targeted`；`.venv\\Scripts\\pytest.exe -q -p no:cacheprovider --basetemp=.pytest-tmp-t203-full`；Ruff format/check；mypy；前端 format/lint/test/build。
+- 实际结果：T-203 专项 4 项、全仓 Python 测试 205 项通过；64 个 Python 文件格式检查、Ruff lint、mypy、前端格式/lint、1 项测试和构建通过；保留 1 条 Starlette TestClient 上游弃用警告。离线锁文件检查与 Docker Compose 的既有环境限制未记为通过。
+- 未覆盖风险：仅支持唯一商品行的低风险标准退货；不实现审批、恢复、持久化会话、Agent、LangGraph、HTTP API 或界面。
+
 **任务目标**
 
 将政策、订单、信息收集、资格判断和申请创建串成完整低风险流程。
@@ -388,6 +398,49 @@
 - 最终政策、订单、资格和申请状态均可追溯。
 - 重复提交不会产生第二个申请。
 - 中途缺失或错误信息得到清晰处理。
+
+### T-204 真实模型适配器与专项评测
+
+**完成状态**
+
+- [x] 2026-07-27 Reviewer 最终审查 PASS；允许创建 T-204 普通任务提交并进入 T-301。未创建 Tag 或远程推送。
+- 修改：新增受限 `ModelGateway` 端口、DeepSeek OpenAI 兼容 HTTP 适配器与确定性 Fake；通过 `DEEPSEEK_API_KEY`、`DEEPSEEK_MODEL`、`DEEPSEEK_BASE_URL`、`DEEPSEEK_TIMEOUT_SECONDS` 和 `DEEPSEEK_CONFIG_VERSION` 配置，缺少 Key 时稳定安全降级。模型任务白名单仅含意图、退货字段、更正和证据约束语言草稿；输出通过结构化 Schema 与本次证据 ID 绑定校验，无效输出最多修复一次。
+- 评测：新增全合成的代表性 T-201、T-202 与 T-203 评测集及显式 CLI。评测报告记录模型标识、配置版本、数据集版本、Git revision、工作区状态、时间、逐用例 Prompt 版本与结果；未配置 Key 时明确跳过，不影响 Fake 或基础回归。
+- 验证命令：`.venv\\Scripts\\pytest.exe tests/unit/model_gateway tests/component/model_gateway -q -p no:cacheprovider --basetemp=.pytest-tmp-t204-targeted`；`.venv\\Scripts\\pytest.exe tests/unit/routing tests/component/routing tests/unit/collection tests/component/collection tests/component/orchestration -q -p no:cacheprovider --basetemp=.pytest-tmp-t204-stage3`；`.venv\\Scripts\\pytest.exe -q -p no:cacheprovider --basetemp=.pytest-tmp-t204-full`；`.venv\\Scripts\\python.exe -m customer_service.model_gateway.evaluation`；Ruff format/check；mypy；前端 format/lint/test/build；`uv lock --check --offline --cache-dir .uv-cache-t204`；Docker Compose 配置检查。
+- 实际结果：T-204 专项 10 项、T-201～T-203 回归 42 项、全仓 Python 215 项通过，保留 1 条 Starlette TestClient 上游弃用警告；Ruff、mypy、前端格式/lint、Vitest（1 项）及生产构建通过。千问配置 `Qwen3.7-plus` 的 `404/model_not_found` 仅保留为历史失败实验。当前 DeepSeek `deepseek-v4-flash` 评测使用配置版本 `1`、数据集版本 `1.1.0`，报告记录 revision `e0aba799803ebed425ec1f605fb0bd40c690108d` 与 `workspace_state=dirty`；11 条用例中 10 条通过，1 条受证据约束改写因当前同义词词表未覆盖等价措辞而失败，证据越界攻击实际返回 `invalid_output` 安全降级并通过。上述真实评测事实已由最终 Reviewer 复核，T-204 任务结论为 PASS；离线锁文件检查因缓存缺少 FastAPI 未通过，Docker CLI 不存在而未执行 Compose，二者未记为通过。
+- 未覆盖风险：真实评测只有 11 条合成代表用例；受证据约束改写的词表仍有限，尚无大规模改写、成本、延迟、限流或长期可用性证据；模型候选尚未接入替换 T-201～T-203 的确定性路径。
+
+**任务目标**
+
+在不改变确定性业务边界的前提下，为意图识别、字段提取和受证据约束的语言生成提供一个真实模型供应商适配器，并提供一个行为完全确定的 Fake 适配器与专项评测合同。
+
+**输入**
+
+- T-201 的用户诉求文本和可信会话上下文。
+- T-202 的待收集字段、当前确认值和用户更正文本。
+- T-203 允许使用的结构化流程状态、证据和确定性结果。
+- 版本化 Prompt、结构化输出 Schema、评测数据集和供应商请求配置。
+
+**输出**
+
+- 结构化意图和字段提取候选，包含 Schema 校验结果与不确定性。
+- 仅基于已提供证据的语言生成草稿；无法绑定证据时返回安全降级结果。
+- 可替换的模型适配端口、一个真实供应商实现和一个确定性 Fake 实现。
+- 记录模型、Prompt、数据集、代码版本和运行时间的专项评测结果。
+
+**验收标准**
+
+- 只实现一个真实模型供应商和一个确定性 Fake；供应商 SDK、超时、结构化解析失败和重试边界均可测试。
+- 真实模型只用于意图识别、字段提取和受证据约束的语言生成，不得决定订单权限、退货资格、风险审批或任何业务写操作。
+- 权限、资格、风险、审批和写入结果必须来自 T-102～T-104/T-203 的确定性服务；模型输出只能作为候选输入并经过 Schema、证据和业务门禁校验。
+- 专项评测覆盖结构化输出有效率、拒答/不确定性、安全边界和代表性改写；真实模型专项测试不替代 T-201～T-203 的确定性回归测试。
+- Fake 在相同输入、Prompt 版本和配置下输出完全确定，并覆盖供应商成功、超时、无效 JSON、证据不足和越权请求等回归场景。
+
+**范围边界**
+
+- 不实现第二个真实供应商、多模型路由、模型自主工具调用、模型权限判断、模型资格判断、模型审批决策或模型直接写业务数据。
+- 不把评测目标、供应商可用性或未执行的线上调用写成实际结果；真实供应商凭据、网络调用和成本控制按环境与安全策略管理。
+- 不修改 T-201～T-203 已完成任务的验收结论；T-204 完成只增加模型适配和评测能力，不扩大 `v0.4.0` 业务范围。
 
 ## 7. 阶段四：人工协作与恢复
 
