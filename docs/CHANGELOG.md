@@ -4,6 +4,16 @@
 
 ## Unreleased
 
+### Added
+
+- T-301 人工审批任务：新增可信高风险上下文绑定、可复核的订单/政策/资格/风险快照，以及 approve、adjust、reject 单次决定和乐观版本防重。并发 compare-and-set 仅在本次决定实际写入时返回成功；输掉读取后竞争的调用稳定返回版本冲突。该模块不恢复工作流、不创建售后申请，也不表示退货已完成。
+
+### Validation
+
+- T-301 专项 12 项、阶段三既有回归 52 项和全仓 Python 测试 227 项通过；Ruff format/check、mypy、前端格式/lint、Vitest（1 项）、生产构建和 `git diff --check` 通过。保留 1 条既有 Starlette TestClient 弃用警告。
+- 离线锁文件检查因缓存缺少 FastAPI 未通过；Docker CLI 不存在，Compose 未执行；两者均未记为通过。
+- T-301 Reviewer 最终审查结论为 PASS，允许创建普通任务提交并进入 T-302；当前不创建 Tag、不发布新版本、不推送远程。
+
 ## [0.4.0] - 2026-07-27
 
 阶段三 AI 售后流程与模型适配发布。T-201～T-204 均已通过阶段出口 Reviewer 审查（PASS）。
