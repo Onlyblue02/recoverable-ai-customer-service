@@ -1,0 +1,77 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #172033;
+  background: #f5f7fb;
+}
+body {
+  margin: 0;
+}
+.app-shell {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+.eyebrow {
+  color: #52627d;
+  font-size: 0.9rem;
+  margin: 0;
+}
+.status {
+  display: inline-block;
+  background: #dceafe;
+  color: #174a8b;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+}
+.conversation {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0;
+}
+.message {
+  max-width: 80%;
+  padding: 14px;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 1px 3px #0001;
+}
+.message.user {
+  margin-left: auto;
+  background: #dff4e8;
+}
+.message p {
+  margin: 8px 0 0;
+}
+.citation {
+  color: #315c99;
+  font-size: 0.9rem;
+}
+.hint {
+  border-left: 4px solid #4d78b8;
+  background: #edf3fc;
+  padding: 12px;
+}
+.composer {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+}
+.composer textarea {
+  font: inherit;
+  padding: 10px;
+  border: 1px solid #98a7bf;
+  border-radius: 8px;
+}
+.composer button {
+  justify-self: end;
+  padding: 9px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #174a8b;
+  color: white;
+  font: inherit;
+}
+.composer button:disabled {
+  opacity: 0.55;
+}
