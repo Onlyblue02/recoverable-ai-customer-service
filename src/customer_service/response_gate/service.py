@@ -36,7 +36,11 @@ class ResponseGateService:
             draft, evidence
         ):
             reasons.append(ResponseGateReason.UNCONFIRMED_COMPLETION)
-        if evidence.eligibility is not None and evidence.eligibility.requires_human_approval:
+        if (
+            evidence.eligibility is not None
+            and evidence.eligibility.requires_human_approval
+            and (draft.claims_completion or completion_words)
+        ):
             if not self._approved(evidence):
                 reasons.append(ResponseGateReason.APPROVAL_REQUIRED)
             elif draft.approval != evidence.approval:
