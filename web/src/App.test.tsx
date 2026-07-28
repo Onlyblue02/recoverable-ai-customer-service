@@ -78,9 +78,7 @@ describe("App", () => {
       target: { value: "退货" },
     })
     fireEvent.click(screen.getByRole("button", { name: "发送" }))
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "处理中，请稍候。",
-    )
+    expect(await screen.findByText("处理中，请稍候。")).toBeVisible()
     expect(screen.getByRole("button", { name: "发送中…" })).toBeDisabled()
     client.resolve?.(collecting)
   })

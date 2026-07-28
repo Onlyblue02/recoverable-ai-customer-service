@@ -48,6 +48,8 @@ class ApprovalDecisionWriteResult:
 
 
 class ApprovalTaskRepository(Protocol):
+    def list_tasks(self) -> tuple[StoredApprovalTask, ...]: ...
+
     def find_by_key(self, key: str) -> StoredApprovalTask | None: ...
 
     def create(self, *, draft: ApprovalTaskDraft) -> StoredApprovalTask | None: ...
@@ -82,6 +84,9 @@ class InMemoryApprovalTaskRepository:
 
     def find_by_key(self, key: str) -> StoredApprovalTask | None:
         return self._by_key.get(key)
+
+    def list_tasks(self) -> tuple[StoredApprovalTask, ...]:
+        return tuple(self._by_id.values())
 
     def create(self, *, draft: ApprovalTaskDraft) -> StoredApprovalTask | None:
         with self._lock:

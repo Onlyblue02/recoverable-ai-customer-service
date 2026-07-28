@@ -13,6 +13,8 @@ from customer_service.collection.service import ReturnInformationCollectionServi
 from customer_service.eligibility.config import EligibilityRuleConfig
 from customer_service.eligibility.engine import EligibilityEngine
 from customer_service.infrastructure.clients.mock_business import HttpOrderGateway
+from customer_service.interfaces.api.routes.approvals import console
+from customer_service.orchestration.high_risk_schemas import HighRiskContext, HighRiskWorkflowStatus
 from customer_service.orchestration.schemas import StandardReturnContext, StandardReturnRequest
 from customer_service.orchestration.service import StandardReturnWorkflowService
 from customer_service.rag.catalog import PolicyCatalog
@@ -134,6 +136,22 @@ class ConsumerConversationService:
     def get(self, conversation_id: str) -> ConversationResponse:
         if conversation_id not in self._contexts:
             raise KeyError(conversation_id)
+        high_risk = console.result_for(conversation_id)
+        if (
+            high_risk is not None
+            and high_risk.status is not HighRiskWorkflowStatus.WAITING_APPROVAL
+        ):
+            snapshot = self._snapshots[conversation_id].model_copy(
+                update={
+                    "status": high_risk.status.value.lower(),
+                    "message": high_risk.message,
+                    "action_hint": "人工审批已处理。",
+                    "service_case_id": high_risk.service_case.service_case_id
+                    if high_risk.service_case
+                    else None,
+                }
+            )
+            self._snapshots[conversation_id] = snapshot
         return self._snapshots[conversation_id].model_copy(
             update={"messages": tuple(self._history[conversation_id])}
         )
@@ -239,6 +257,26 @@ class ConsumerConversationService:
                     )
                 }
             )
+        if result.status.value == "REQUIRES_APPROVAL" and collection is not None:
+            assert collection.order_id and collection.return_reason and collection.item_condition
+            high_risk = console.start(
+                conversation_id,
+                HighRiskContext(
+                    workflow_id=f"WF-{conversation_id}",
+                    current_user_id=_DEMO_USER_ID,
+                    order_id=collection.order_id,
+                    return_reason=collection.return_reason,
+                    item_condition=collection.item_condition.value,
+                ),
+                message=message,
+            )
+            if high_risk.approval is not None:
+                return self._response(
+                    conversation_id=conversation_id,
+                    status="requires_approval",
+                    message=high_risk.message,
+                    action_hint="已进入人工审批队列。",
+                )
         return self._response(
             conversation_id=conversation_id,
             status=result.status.value.lower(),

@@ -7,6 +7,7 @@ import {
   Message,
 } from "./conversation"
 import "./App.css"
+import { ApprovalWorkbench } from "./ApprovalWorkbench"
 
 const statusLabels: Record<ConversationSnapshot["status"], string> = {
   collecting_information: "等待补充信息",
@@ -88,6 +89,7 @@ export function App({
         </button>
         {sending ? <p role="status">处理中，请稍候。</p> : null}
       </form>
+      <ApprovalWorkbench />
     </main>
   )
 }
