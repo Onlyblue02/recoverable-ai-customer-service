@@ -1,0 +1,31 @@
+{
+  "failure_set": "racs-preserved-real-failures",
+  "failure_set_version": "1.0.0",
+  "dataset_version": "1.1.0",
+  "failures": [
+    {
+      "failure_id": "T204-T203-GROUNDED-REWRITE-001",
+      "source": "reports/evaluations/t204-deepseek.json",
+      "source_sha256": "a187085d7f7113471888bbb335877288008fd3f073bf7f55286d001f7ea74657",
+      "executed_at": "2026-07-26T11:20:49.150416+00:00",
+      "model_identifier": "deepseek-v4-flash",
+      "status": "failed",
+      "prompt_version": "t204-grounded-v1",
+      "config_version": "1",
+      "code_version": "e0aba799803ebed425ec1f605fb0bd40c690108d",
+      "source_summary": {
+        "dataset_version": "1.1.0",
+        "model_identifier": "deepseek-v4-flash",
+        "config_version": "1",
+        "code_version": "e0aba799803ebed425ec1f605fb0bd40c690108d",
+        "prompt_version": "t204-grounded-v1",
+        "status": "succeeded",
+        "passed": false
+      },
+      "expected": "A grounded rewrite must satisfy the configured required wording groups and use the supplied evidence ID.",
+      "actual": "The response used the expected evidence ID but omitted an accepted configured synonym for the time-window wording.",
+      "failure_reason": "LIMITED_REWRITE_SYNONYM_COVERAGE",
+      "improvement_suggestion": "Expand the versioned semantic assertion groups and add reviewed synthetic rewrite cases before treating this task as broadly robust."
+    }
+  ]
+}

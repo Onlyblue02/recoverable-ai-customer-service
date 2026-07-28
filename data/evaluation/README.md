@@ -16,3 +16,13 @@
 ```text
 uv run pytest tests/evaluation -q
 ```
+
+## T-403 可重复验收报告
+
+T-403 使用本目录的固定版本和既有公开服务路径生成代表性运行报告，不修改本验收契约。运行命令：
+
+```text
+.venv\Scripts\python.exe -m customer_service.acceptance_reporting.runner --output reports/evaluations/t403-fixed-acceptance.json
+```
+
+运行产物位于被 Git 忽略的 `reports/evaluations/`；可审计摘要见 `docs/acceptance/T-403-fixed-acceptance-report.md`。`failures/cases.v1.json` 保留真实历史失败及改进建议，不能被通过结果覆盖。
