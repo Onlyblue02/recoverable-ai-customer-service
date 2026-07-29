@@ -4,6 +4,35 @@
 
 ## Unreleased
 
+### v1.0.0 正式版晋级条件
+
+- 在能够稳定访问 Docker Hub 或受控镜像缓存的环境中，使用未修改的交付配置完成 Docker/Compose 构建和启动。
+- 确认 `postgres`、`racs-api`、`mock-business-api`、`web` 全部达到预期状态，两个 API 健康端点、PostgreSQL 就绪检查、Web 可访问性及必要的服务间连通性全部通过。
+- 保存 Compose 构建、启动、状态、健康检查、连通性及清理日志；执行 `compose down` 后确认无项目容器残留。
+- 重新运行锁文件、Python、前端、Fake/真实模型专项、版本与文档一致性门禁，并由 Release Manager 核对结果。
+- 获得项目所有者对正式 `v1.0.0` 的明确发布授权后，才可更新正式版本、创建正式 Tag 或推送远程。
+
+## [1.0.0-rc.1] - 2026-07-29
+
+这是候选版本，不是正式 `v1.0.0`。`v0.5.0` 仍是最近正式版本。
+
+### Completed
+
+- T-401～T-404 均已完成并通过 Reviewer：消费者对话界面、人工审批工作台、固定验收与失败报告、项目演示与交付材料已按各任务报告记录收尾。
+
+### Validation
+
+- 候选版复测：Python 全仓回归 291 项、文档专项 12 项通过；Ruff format/check、mypy（106 个源文件）和 `git diff --check` 通过。
+- 前端 Prettier、ESLint、Vitest 10 项及生产构建通过。
+- 确定性 Fake/model gateway 专项 10 项通过。DeepSeek 真实模型专项的执行链路、安全边界及评测结论通过 Reviewer；固定评测实际结果为 10/11，并保留 `T204-T203-GROUNDED-REWRITE-001` 失败案例，不表述为全量用例通过。
+- `uv.lock` 已同步，`uv lock --check` 实际通过。
+
+### Blocked
+
+- Docker Hub 网络访问失败；最新 `docker pull docker/dockerfile:1` 在读取 manifest 时返回 EOF。
+- Docker 构建、Compose 启动、容器健康检查、初始化和服务连通闭环尚未完成，均不记为成功。Compose 配置检查曾通过，但不能替代上述未执行项。
+- 因此本候选版本不晋级为正式 `v1.0.0`，且不推送远程。
+
 ### Added
 
 - T-404 项目演示与交付材料：新增本地启动指南、5–8 分钟演示脚本、标准退货/高风险审批/失败案例展示步骤，并为 Vite 开发服务器加入本地 API 代理。
@@ -13,7 +42,13 @@
 
 ### Validation
 
-- T-404 演示材料、消费者/审批接口和 T-403 报告专项 18 项、全仓 Python 281 项、前端 Vitest 10 项通过；Ruff format/check、mypy、Prettier、ESLint 与生产构建通过。Docker Compose 与联网锁文件遗留未记为通过。Reviewer 最终审查结论为 PASS，允许创建普通任务提交；当前不发布 `v1.0.0`、不创建 Tag、不推送远程。
+- T-404 已完成独立 Reviewer 审查 PASS，允许创建普通任务提交；这不代表阶段五或 `v1.0.0` 已发布。`uv lock` 已仅同步 editable 项目包版本 `0.2.0 → 0.5.0`，随后 `uv lock --check`、全仓 Python 289 项、Ruff format/check 与 mypy 均通过。Docker Desktop/Engine 与 Compose config 可用，但 Docker Desktop 重启后 `compose up --build -d` 仍在 BuildKit gRPC 会话 header 含不可打印字符时失败；未启动服务，健康检查与连通性未执行。`compose down` 已成功、最终 `ps` 无项目容器。完整记录见 `docs/release-validation-v1.0.0-2026-07-28.md`。
+- 发布记录一致性复测：`uv lock --check` 在可访问用户级缓存的环境中通过（`Resolved 65 packages in 1ms`）；文档专项 11 项、当前全仓 Python 290 项、Ruff format/check、mypy（106 个源文件）和 `git diff --check` 通过。纯 ASCII 路径已越过原 BuildKit header 错误，但最新 `docker pull docker/dockerfile:1` 在 Docker Hub manifest 请求中返回 EOF；本轮未重跑 Compose 或健康检查。另须项目所有者明确授权才可发布。
+- v1.0.0 发布环境首次受限运行曾出现 `uv lock --check` 退出码 1 和 PATH 未发现 Docker CLI；该历史结果已被后续复测取代：`uv lock --check` 当前通过，Docker CLI/Engine 与 Compose config 可用。当前唯一环境阻塞是 Docker BuildKit 构建 gRPC session header 错误，服务健康检查和连通性尚未执行；未发布、未创建 Tag、未推送。
+- T-404 演示材料、消费者/审批接口和 T-403 报告专项 18 项、全仓 Python 281 项、前端 Vitest 10 项通过；Ruff format/check、mypy、Prettier、ESLint 与生产构建通过。该历史执行记录已被 T-404 独立 Reviewer PASS 与后续发布环境复测补充；当前不发布 `v1.0.0`、不创建 Tag、不推送远程。
+- 发布门禁修复：消费者与 Mock Business API 的公开版本从 `pyproject.toml` 唯一版本源读取；新增版本一致性、未发布状态与发布检查文档测试。历史离线缓存检查缺少 `fastapi` 不代表当前锁文件状态；当前 `uv lock --check` 已通过，Docker BuildKit 构建阻塞仍未关闭。
+- T-404 文档一致性修复：架构和目录文档现明确当前为进程内合成实现；PostgreSQL 持久化、SSE、跨进程恢复、完整 LangGraph/Agent 和生产部署仅列为未实现的未来规划，不作为阶段五通过或发布证据。
+- T-404 架构/目录文档专项 9 项、当前全仓 Python 287 项、前端 Vitest 10 项通过；Ruff format/check、mypy（105 个源文件）、Prettier、ESLint、生产构建和 `git diff --check` 通过。后续发布环境复测已关闭锁文件一致性；Docker BuildKit 构建仍未通过。
 - T-403 代表性验收运行器实际输出 10/10 通过；验收基线与 T-403 专项 29 项、全仓 Python 279 项、前端 Vitest 10 项通过，Ruff format/check、mypy、Prettier、ESLint 与生产构建通过。固定报告保留经来源校验的 DeepSeek `deepseek-v4-flash` 合成专项失败 `T204-T203-GROUNDED-REWRITE-001`，并记录数据集 `1.1.0`、配置 `1`、Prompt `t204-grounded-v1` 和代码版本；来源缺失或漂移时安全降级为 `evidence_unavailable`。Reviewer 最终审查结论为 PASS，允许创建普通任务提交并进入 T-404；当前不发布 `v1.0.0`、不创建 Tag、不推送远程。
 - T-402/T-304 公开编排专项 12 项、全仓 Python 275 项、前端 Vitest 10 项通过；Ruff format/check、mypy（98 个源文件）、Prettier、ESLint、生产构建和 `git diff --check` 通过。Reviewer 最终审查结论为 PASS，允许创建普通任务提交并进入 T-403；当前不发布 `v1.0.0`、不创建 Tag、不推送远程。
 

@@ -1,10 +1,10 @@
 # Recoverable AI Customer Service
 
-RACS 是一个可恢复式 AI 售后客服项目。阶段一 `v0.2.0`、阶段二 `v0.3.0`、阶段三 `v0.4.0` 和阶段四 `v0.5.0` 已按 Reviewer 门禁发布；消费者对话、人工审批和固定验收报告已完成普通任务验收。`v1.0.0` 仍待 T-404 Reviewer 审查、发布门禁与项目所有者授权，不能提前表述为已发布。
+RACS 是一个可恢复式 AI 售后客服项目。阶段一 `v0.2.0`、阶段二 `v0.3.0`、阶段三 `v0.4.0` 和阶段四 `v0.5.0` 已按 Reviewer 门禁发布；`v0.5.0` 仍是最近正式版本。T-401～T-404 已完成并通过 Reviewer，当前准备版本为候选版 `v1.0.0-rc.1`；Docker Hub 网络阻塞导致 Docker 构建、健康检查和 Compose 闭环尚未完成，因此 `v1.0.0` 未发布。
 
 ## 项目版本与发布
 
-项目唯一版本号来源是 `pyproject.toml` 的 `[project].version`，当前为 `0.5.0`。阶段版本规划、发布门禁与一致性检查见 `docs/RELEASES.md`；版本变化见 `docs/CHANGELOG.md`；任务验收证据按 `docs/task-reports/T-xxx.md` 维护。
+项目唯一版本号来源是 `pyproject.toml` 的 `[project].version`，当前候选版本为 PEP 440 格式的 `1.0.0rc1`，对应 Git Tag `v1.0.0-rc.1`。阶段版本规划、发布门禁与一致性检查见 `docs/RELEASES.md`；版本变化见 `docs/CHANGELOG.md`；任务验收证据按 `docs/task-reports/T-xxx.md` 维护。
 
 阶段一产品基线已通过 Reviewer 复审，正式版本为 `v0.2.0`，允许进入 T-101。该版本只证明 T-000～T-002 的工程、合成数据和固定验收合同，不代表 T-101 及后续业务能力已经实现。
 

@@ -672,11 +672,14 @@
 
 **完成状态**
 
-- [x] 2026-07-28 Reviewer 最终审查 PASS；允许创建 T-404 普通任务提交，当前不发布 `v1.0.0`。
+- [x] 2026-07-28 独立 Reviewer 审查 PASS；允许创建 T-404 普通任务提交，当前不发布 `v1.0.0`。
 
 - 后续扩展任务未开始；本任务不授权 `v1.0.0` 发布。
-- 修改：补充 README 快速启动与能力边界、Windows 本地启动指南、5–8 分钟演示脚本，以及标准退货、高风险审批、检查点恢复和真实失败案例展示步骤。
-- 当前验证：演示材料、消费者/审批接口和 T-403 报告专项 18 项、全仓 Python 281 项、前端 Vitest 10 项通过；Ruff format/check、mypy（102 个源文件）、Prettier、ESLint 与生产构建通过。Docker Compose 与联网锁文件的既有发布遗留仍未标记为通过；Reviewer 最终复审 PASS。
+- 修改：补充 README 快速启动与能力边界、Windows 本地启动指南、5–8 分钟演示脚本，以及标准退货、高风险审批、检查点恢复和真实失败案例展示步骤；将架构与目录文档拆分为当前进程内合成实现和明确标注的未来规划，避免将数据库、SSE、LangGraph 或 Agent 误写为当前能力。
+- 当前验证：演示材料、消费者/审批接口和 T-403 报告专项 18 项、全仓 Python 281 项、前端 Vitest 10 项通过；Ruff format/check、mypy（102 个源文件）、Prettier、ESLint 与生产构建通过。Docker Compose 与联网锁文件的既有发布遗留仍未标记为通过；T-404 仍待独立 Reviewer 复审。
+- 文档一致性复测：架构/目录与交付文档专项 9 项、当前全仓 Python 287 项、前端 Vitest 10 项通过；Ruff format/check、mypy（105 个源文件）、Prettier、ESLint、生产构建与 `git diff --check` 通过。锁文件与 Docker 发布环境阻塞仍未关闭。
+- 发布环境复测：`uv lock` 同步 editable 项目包后，`uv lock --check` 已通过，锁文件一致性阻塞关闭；Docker Desktop/Engine 和 Compose config 已通过确认，但 `compose up --build -d` 在 BuildKit gRPC 会话 header 含不可打印字符时失败，未启动容器，健康检查/连通性未执行。`compose down` 成功且最终 `ps` 无项目容器。完整输出见 `docs/release-validation-v1.0.0-2026-07-28.md`；Docker BuildKit 阻塞仍不作为 v1.0.0 发布通过证据。
+- 2026-07-29 发布决定：允许准备本地候选版本 `v1.0.0-rc.1`；`v0.5.0` 仍是最近正式版本。Docker Hub 网络失败导致构建、健康检查和 Compose 闭环未完成，故不发布正式 `v1.0.0`。晋级条件见 `docs/RELEASES.md`。
 
 **任务目标**
 
