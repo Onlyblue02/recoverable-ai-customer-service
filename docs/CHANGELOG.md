@@ -4,6 +4,17 @@
 
 ## Unreleased
 
+### Fixed
+
+- 修复 Windows/OneDrive 环境下本地试用的启动与停止安全问题：新增一键启动/停止入口、OneDrive 兼容依赖安装、后端可用端口选择，以及基于会话令牌、仓库路径、可执行文件、PID 和监听端口联合校验的进程守卫；停止脚本不会仅凭陈旧或伪造 PID 终止无关进程。
+- 后端端口可通过 `RACS_BACKEND_PORT` 配置，Vite 本地代理通过 `VITE_RACS_BACKEND_PORT` 使用同一端口；非法端口安全拒绝。浏览器存储不可用时，会话仍可在当前页面内安全使用。
+- 补充 PowerShell、Windows 双击与 PyCharm 本地演示入口，以及对应启动、停止、端口故障处理和边界文档。
+
+### Validation
+
+- 2026-08-03 Reviewer 最终结论为 PASS，允许创建普通修复提交；不晋级新 RC 或正式版本。
+- 本地启动修复专项实际结果为 15 项通过、1 项因当前环境无法读取 Windows 进程命令行而跳过；全仓 Python 301 项通过、1 项同原因跳过。Ruff format/check、mypy（110 个源文件）、Prettier、ESLint、前端 Vitest 17 项和生产构建通过。该跳过项不被写成通过，Docker 发布验证状态未改变。
+
 ### v1.0.0 正式版晋级条件
 
 - 在能够稳定访问 Docker Hub 或受控镜像缓存的环境中，使用未修改的交付配置完成 Docker/Compose 构建和启动。

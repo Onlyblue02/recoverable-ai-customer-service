@@ -10,7 +10,7 @@ def test_t404_demo_materials_link_real_startup_and_evidence() -> None:
 
     assert "docs/demo/STARTUP.md" in readme
     assert "docs/demo/DEMO_SCRIPT.md" in readme
-    assert "uv run uvicorn customer_service.main:app" in startup
+    assert "uv run python -m customer_service.local_server" in startup
     assert "pnpm --dir web dev" in startup
     assert "ORD-NORMAL-001" in script
     assert "ORD-HIGH-VALUE-001" in script
@@ -26,4 +26,6 @@ def test_t404_demo_materials_disclose_unverified_compose_and_fixed_scope() -> No
     assert "Compose" in startup and "尚未完成" in startup
     assert "10" in script and "38" in script
     assert "DeepSeek" in script
-    assert '"/api"' in vite and "http://127.0.0.1:8000" in vite
+    assert '"/api"' in vite
+    assert "VITE_RACS_BACKEND_PORT" in vite
+    assert "DEFAULT_BACKEND_PORT = 8000" in vite

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { ConversationStorage, HttpConversationClient } from "./conversation"
 
@@ -167,5 +167,43 @@ describe("HttpConversationClient", () => {
     await expect(expired.send("我要退货")).rejects.toThrow(
       "conversation unavailable",
     )
+  })
+
+  it("keeps the active conversation usable when browser storage is unavailable", async () => {
+    const unavailableStorage: ConversationStorage = {
+      getItem() {
+        throw new Error("storage denied")
+      },
+      setItem() {
+        throw new Error("storage denied")
+      },
+      removeItem() {
+        throw new Error("storage denied")
+      },
+    }
+    const client = new HttpConversationClient(
+      "/conversation",
+      async () => response(welcome),
+      unavailableStorage,
+    )
+
+    expect((await client.load()).status).toBe("collecting_information")
+  })
+
+  it("binds the default browser fetch to the global browser context", async () => {
+    vi.stubGlobal("fetch", function (this: unknown) {
+      expect(this).toBe(globalThis)
+      return Promise.resolve(response(welcome))
+    })
+    try {
+      const client = new HttpConversationClient(
+        "/conversation",
+        undefined,
+        new MemoryStorage(),
+      )
+      expect((await client.load()).status).toBe("collecting_information")
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 })

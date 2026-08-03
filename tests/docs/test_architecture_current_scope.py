@@ -35,7 +35,7 @@ def test_t404_delivery_documents_keep_real_demo_and_release_limits() -> None:
     script = (ROOT / "docs" / "demo" / "DEMO_SCRIPT.md").read_text(encoding="utf-8")
     report = (ROOT / "docs" / "task-reports" / "T-404.md").read_text(encoding="utf-8")
 
-    assert "uv run uvicorn customer_service.main:app" in startup
+    assert "uv run python -m customer_service.local_server" in startup
     assert "ORD-NORMAL-001" in script
     assert "ORD-HIGH-VALUE-001" in script
     assert "T204-T203-GROUNDED-REWRITE-001" in script

@@ -17,3 +17,4 @@ reports/evaluations/
 .DS_Store
 .idea/
 .vscode/
+scripts/.local-demo-processes.json

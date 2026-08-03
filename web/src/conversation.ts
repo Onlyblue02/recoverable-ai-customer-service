@@ -71,7 +71,7 @@ export class HttpConversationClient implements ConversationClient {
 
   constructor(
     private readonly baseUrl = "/api/v1/conversations",
-    private readonly fetcher: Fetcher = fetch,
+    private readonly fetcher: Fetcher = globalThis.fetch.bind(globalThis),
     private readonly storage:
       ConversationStorage | undefined = browserStorage(),
   ) {}
@@ -88,13 +88,12 @@ export class HttpConversationClient implements ConversationClient {
   }
 
   private async loadSession(): Promise<ConversationSnapshot> {
-    const rememberedId =
-      this.conversationId ?? this.storage?.getItem(sessionKey) ?? undefined
+    const rememberedId = this.conversationId ?? this.readRememberedId()
     if (rememberedId) {
       const response = await this.fetcher(`${this.baseUrl}/${rememberedId}`)
       if (response.ok) return this.apply(await this.json(response))
       if (response.status !== 404) throw new Error("conversation unavailable")
-      this.storage?.removeItem(sessionKey)
+      this.forgetRememberedId()
       this.conversationId = undefined
     }
     const response = await this.fetcher(this.baseUrl, { method: "POST" })
@@ -121,7 +120,7 @@ export class HttpConversationClient implements ConversationClient {
 
   private apply(result: ServerResponse): ConversationSnapshot {
     this.conversationId = result.conversation_id
-    this.storage?.setItem(sessionKey, this.conversationId)
+    this.rememberId(this.conversationId)
     this.snapshot = {
       status: statusFrom(result.status),
       actionHint: result.action_hint,
@@ -147,10 +146,39 @@ export class HttpConversationClient implements ConversationClient {
     }
     return this.snapshot
   }
+
+  private readRememberedId(): string | undefined {
+    try {
+      return this.storage?.getItem(sessionKey) ?? undefined
+    } catch {
+      return undefined
+    }
+  }
+
+  private rememberId(conversationId: string): void {
+    try {
+      this.storage?.setItem(sessionKey, conversationId)
+    } catch {
+      // Session persistence is optional; the active in-memory session remains usable.
+    }
+  }
+
+  private forgetRememberedId(): void {
+    try {
+      this.storage?.removeItem(sessionKey)
+    } catch {
+      // An unavailable browser store must not block creation of a fresh session.
+    }
+  }
 }
 
 function browserStorage(): ConversationStorage | undefined {
-  return typeof window === "undefined" ? undefined : window.localStorage
+  if (typeof window === "undefined") return undefined
+  try {
+    return window.localStorage
+  } catch {
+    return undefined
+  }
 }
 
 function statusFrom(status: string): ConversationStatus {

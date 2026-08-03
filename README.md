@@ -51,7 +51,15 @@ uv run uvicorn customer_service.main:app --reload
 
 本项目只使用合成数据，不需要真实个人信息或真实订单。最短启动与故障处理见 [启动指南](docs/demo/STARTUP.md)，5–8 分钟的评审演示步骤见 [演示脚本](docs/demo/DEMO_SCRIPT.md)。
 
-本地开发演示使用后端 `http://127.0.0.1:8000` 与前端 `http://127.0.0.1:5173`。Vite 开发服务器会将 `/api` 代理给后端，因此应先启动后端，再启动前端。
+项目所有者可在仓库根目录用以下一条命令启动本地合成演示（无需 Docker、无需 DeepSeek API Key）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start_local_demo.ps1
+```
+
+脚本会自动检查依赖（`pnpm` 不在 PATH 时尝试 `corepack pnpm`）、设置 OneDrive 兼容的 `UV_LINK_MODE=copy`、选择可用后端端口，并将同一端口配置给 Vite 代理；完成后会输出消费者页面 URL。Windows 用户也可以直接双击 `scripts/启动本地演示.cmd`，它会启动并打开消费者页面；停止时双击 `scripts/停止本地演示.cmd`。PyCharm 用户可在右上角运行配置中选择“启动本地演示”或“停止本地演示”，再点击绿色运行按钮。详细说明见 [启动指南](docs/demo/STARTUP.md)。
+
+手动开发默认使用后端 `http://127.0.0.1:8000` 与前端 `http://127.0.0.1:5173`。`RACS_BACKEND_PORT` 可配置后端端口，`VITE_RACS_BACKEND_PORT` 配置 Vite 代理目标；两者默认均为 `8000`。
 
 固定验收及失败案例的实际结果见 [T-403 验收报告](docs/acceptance/T-403-fixed-acceptance-report.md)。它记录 10 条代表性公开路径与保留的真实模型失败样本；并非把 10 条通过写成全部 38 条固定契约均已逐条运行。
 

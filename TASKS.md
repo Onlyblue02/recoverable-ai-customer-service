@@ -680,6 +680,7 @@
 - 文档一致性复测：架构/目录与交付文档专项 9 项、当前全仓 Python 287 项、前端 Vitest 10 项通过；Ruff format/check、mypy（105 个源文件）、Prettier、ESLint、生产构建与 `git diff --check` 通过。锁文件与 Docker 发布环境阻塞仍未关闭。
 - 发布环境复测：`uv lock` 同步 editable 项目包后，`uv lock --check` 已通过，锁文件一致性阻塞关闭；Docker Desktop/Engine 和 Compose config 已通过确认，但 `compose up --build -d` 在 BuildKit gRPC 会话 header 含不可打印字符时失败，未启动容器，健康检查/连通性未执行。`compose down` 成功且最终 `ps` 无项目容器。完整输出见 `docs/release-validation-v1.0.0-2026-07-28.md`；Docker BuildKit 阻塞仍不作为 v1.0.0 发布通过证据。
 - 2026-07-29 发布决定：允许准备本地候选版本 `v1.0.0-rc.1`；`v0.5.0` 仍是最近正式版本。Docker Hub 网络失败导致构建、健康检查和 Compose 闭环未完成，故不发布正式 `v1.0.0`。晋级条件见 `docs/RELEASES.md`。
+- 2026-08-03 本地一键启动修复 Reviewer PASS：Windows/OneDrive 启停脚本、可配置后端/Vite 代理端口、进程身份与监听端口守卫及对应文档/测试获准创建普通修复提交。专项实际结果 15 项通过、1 项因当前环境无法读取 Windows 进程命令行而跳过；全仓 Python 301 项通过、1 项同原因跳过；前端 Vitest 17 项及质量门禁通过。Docker 发布验证仍未闭环，不创建新 RC 或正式版本 Tag。
 
 **任务目标**
 
