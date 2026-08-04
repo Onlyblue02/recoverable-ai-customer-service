@@ -117,3 +117,44 @@ def test_provider_exception_is_safely_sanitized() -> None:
     assert result.status is ModelResultStatus.PROVIDER_FAILURE
     assert "password" not in result.model_dump_json()
     assert "internal" not in result.model_dump_json()
+
+
+def test_agent_plan_is_schema_checked_and_repaired_once() -> None:
+    calls = 0
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return response(
+            "not-json"
+            if calls == 1
+            else json.dumps(
+                {
+                    "schema_version": "agent-plan-v1",
+                    "intent": "policy_question",
+                    "requested_capability": "policy.lookup",
+                    "extracted_parameters": {},
+                    "clarification_fields": [],
+                    "uncertainty_reason": None,
+                }
+            )
+        )
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    result = DeepSeekModelGateway(configured_settings(), client=client).generate(
+        request(ModelTask.AGENT_PLAN_GENERATION)
+    )
+    assert result.status is ModelResultStatus.SUCCEEDED
+    assert calls == 2
+
+
+def test_agent_plan_invalid_after_repair_safely_degrades() -> None:
+    client = httpx.Client(
+        transport=httpx.MockTransport(
+            lambda _: response('{"schema_version":"agent-plan-v1","intent":"order_query"}')
+        )
+    )
+    result = DeepSeekModelGateway(configured_settings(), client=client).generate(
+        request(ModelTask.AGENT_PLAN_GENERATION)
+    )
+    assert result.status is ModelResultStatus.INVALID_OUTPUT

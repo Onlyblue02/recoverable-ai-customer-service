@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from customer_service.model_gateway.schemas import (
+    AgentPlanCandidate,
     CorrectionCandidate,
     GroundedResponseDraft,
     IntentCandidate,
@@ -22,7 +23,16 @@ class FakeModelGateway:
 
     def generate(self, request: ModelRequest) -> ModelResponse:
         payload = self._outputs.get(request.case_id, self._default_payload(request))
-        output = self._parse_output(request.task, payload)
+        try:
+            output = self._parse_output(request.task, payload)
+        except ValueError:
+            return ModelResponse(
+                status=ModelResultStatus.INVALID_OUTPUT,
+                task=request.task,
+                output=None,
+                error_code="FAKE_INVALID_STRUCTURED_OUTPUT",
+                message="模型候选不符合受限结构，已安全降级。",
+            )
         return ModelResponse(
             status=ModelResultStatus.SUCCEEDED,
             task=request.task,
@@ -39,6 +49,15 @@ class FakeModelGateway:
             return {"order_id": None, "return_reason": None, "item_condition": None}
         if request.task is ModelTask.CORRECTION_RECOGNITION:
             return {"corrected_slot": None, "corrected_value": None}
+        if request.task is ModelTask.AGENT_PLAN_GENERATION:
+            return {
+                "schema_version": "agent-plan-v1",
+                "intent": "unknown",
+                "requested_capability": "clarify",
+                "extracted_parameters": {},
+                "clarification_fields": ["order_id"],
+                "uncertainty_reason": "ambiguous_intent",
+            }
         return {
             "text": "请以提供的政策证据为准。",
             "evidence_ids": [request.evidence[0].evidence_id],
@@ -52,4 +71,6 @@ class FakeModelGateway:
             return ReturnFieldCandidate.model_validate(payload)
         if task is ModelTask.CORRECTION_RECOGNITION:
             return CorrectionCandidate.model_validate(payload)
+        if task is ModelTask.AGENT_PLAN_GENERATION:
+            return AgentPlanCandidate.model_validate(payload)
         return GroundedResponseDraft.model_validate(payload)

@@ -51,3 +51,27 @@ def test_grounded_task_requires_real_evidence_in_the_request() -> None:
         evidence=(EvidenceSnippet(evidence_id="POL-1@1", text="合成证据"),),
     )
     assert FakeModelGateway().generate(request).output is not None
+
+
+def test_fake_agent_plan_is_deterministic_and_rejects_unknown_capability() -> None:
+    request = ModelRequest(
+        case_id="agent-plan",
+        task=ModelTask.AGENT_PLAN_GENERATION,
+        text="synthetic",
+        prompt_version="t603-v1",
+    )
+    fake = FakeModelGateway()
+    assert fake.generate(request) == fake.generate(request)
+    invalid = FakeModelGateway(
+        {
+            "agent-plan": {
+                "schema_version": "agent-plan-v1",
+                "intent": "order_query",
+                "requested_capability": "order.write",
+                "extracted_parameters": {},
+                "clarification_fields": [],
+                "uncertainty_reason": None,
+            }
+        }
+    ).generate(request)
+    assert invalid.status.name == "INVALID_OUTPUT"

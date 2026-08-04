@@ -814,6 +814,8 @@ T-501～T-507 已被既有规划占用，不得修改、复用或为缺少详细
 
 ### T-603 DeepSeek 意图识别与结构化计划协议
 
+**状态**：2026-08-04 Reviewer 最终审查 PASS；T-603 已完成，允许创建普通任务提交并进入 T-604。未创建 Tag 或远程推送。
+
 **目标**
 
 基于 T-204 的 ModelGateway，为 Agent 定义并接入 DeepSeek 的结构化意图、字段候选和有限计划协议，不授予模型实际工具执行权。
@@ -843,6 +845,15 @@ T-501～T-507 已被既有规划占用，不得修改、复用或为缺少详细
 - 无效结构最多修复一次；仍失败时不产生可执行计划。
 - DeepSeek 不能直接调用工具、改变状态终态或声明业务操作成功。
 - Fake 在相同输入、Prompt 和配置下输出确定，并覆盖所有模型失败分支。
+
+**实际验证记录（2026-08-04）**
+
+- 新增 `agent-plan-v1`：仅接受四种意图、五种只读/路由能力候选和受限退货字段；拒绝未知字段、写能力、审批/资格等非协议字段。
+- DeepSeek 延用 T-204 的温度 `0`、JSON 输出和一次修复；第二次不合格会返回 `INVALID_OUTPUT`，由 T-603 安全停止。
+- T-603 仅允许将合法计划推进到 `VALIDATING_PLAN`，或将不确定计划路由到 `CLARIFYING` / `ESCALATING`；未注册、调用或模拟任何真实工具。
+- 已运行 `pytest tests/unit/agent_planning tests/unit/model_gateway tests/unit/agent_runtime -q -p no:cacheprovider --basetemp=.pytest-tmp-t603-targeted`：25 passed。
+- 收尾复测：`pytest -o addopts='' -q -p no:cacheprovider --basetemp=.pytest-tmp-t603-full` 为 317 passed、1 skipped，并保留 1 条既有 Starlette TestClient 弃用警告；`ruff format --check .`、`ruff check .`、`mypy src tests` 和 `git diff --check` 均通过。
+- 2026-08-04 Reviewer 最终审查 PASS；Release Manager 复测 T-603 相关 Python 25 项、文档测试 15 项通过，Ruff format（118 个文件）/check、mypy（117 个源文件）和 `git diff --check` 通过；允许进入 T-604。
 
 ### T-604 工具注册表、计划校验与权限边界
 

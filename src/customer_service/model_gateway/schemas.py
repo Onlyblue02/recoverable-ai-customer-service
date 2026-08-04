@@ -9,6 +9,7 @@ class ModelTask(StrEnum):
     RETURN_FIELD_EXTRACTION = "return_field_extraction"
     CORRECTION_RECOGNITION = "correction_recognition"
     GROUNDED_RESPONSE_GENERATION = "grounded_response_generation"
+    AGENT_PLAN_GENERATION = "agent_plan_generation"
 
 
 class ModelResultStatus(StrEnum):
@@ -87,8 +88,34 @@ class GroundedResponseDraft(BaseModel):
     evidence_ids: tuple[str, ...] = Field(min_length=1)
 
 
+class AgentPlanCandidate(BaseModel):
+    """Model suggestion only; it is not a tool invocation or business decision."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    schema_version: Literal["agent-plan-v1"]
+    intent: Literal["policy_question", "order_query", "return_request", "unknown"]
+    requested_capability: Literal[
+        "policy.lookup",
+        "order.get_authorized",
+        "return.evaluate",
+        "clarify",
+        "escalate",
+    ]
+    extracted_parameters: ReturnFieldCandidate = Field(default_factory=ReturnFieldCandidate)
+    clarification_fields: tuple[Literal["order_id", "return_reason", "item_condition"], ...] = ()
+    uncertainty_reason: (
+        Literal["ambiguous_intent", "missing_information", "unsupported_request", "low_confidence"]
+        | None
+    ) = None
+
+
 ModelOutput = Annotated[
-    IntentCandidate | ReturnFieldCandidate | CorrectionCandidate | GroundedResponseDraft,
+    IntentCandidate
+    | ReturnFieldCandidate
+    | CorrectionCandidate
+    | GroundedResponseDraft
+    | AgentPlanCandidate,
     Field(discriminator=None),
 ]
 

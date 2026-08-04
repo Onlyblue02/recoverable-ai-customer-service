@@ -176,6 +176,38 @@ class ControlledAgentExecutor:
             AgentReasonCode.TOOL_RESULT_ACCEPTED,
         )
 
+    def accept_validated_model_plan(self, state: AgentState) -> AgentState:
+        """Advance a schema- and policy-validated T-603 plan; never invoke a capability."""
+        if state.status is not AgentStatus.PLANNING:
+            return self._illegal(state, AgentEventType.MODEL_RESULT)
+        return self._move(
+            state,
+            AgentEventType.MODEL_RESULT,
+            AgentStatus.VALIDATING_PLAN,
+            AgentReasonCode.PLAN_ACCEPTED,
+        )
+
+    def route_plan_uncertainty(self, state: AgentState, *, escalate: bool) -> AgentState:
+        """Route an already validated non-executable plan without invoking any capability."""
+        if state.status is not AgentStatus.PLANNING:
+            return self._illegal(state, AgentEventType.MODEL_RESULT)
+        target = AgentStatus.ESCALATING if escalate else AgentStatus.CLARIFYING
+        code = (
+            AgentReasonCode.PLAN_ESCALATED if escalate else AgentReasonCode.PLAN_NEEDS_CLARIFICATION
+        )
+        return self._move(state, AgentEventType.MODEL_RESULT, target, code)
+
+    def fail_model_plan(self, state: AgentState, code: AgentReasonCode) -> AgentState:
+        """Failure-only entry for T-603 validation results."""
+        allowed = {
+            AgentReasonCode.PLAN_MODEL_INVALID,
+            AgentReasonCode.PLAN_MODEL_UNAVAILABLE,
+            AgentReasonCode.PLAN_POLICY_VIOLATION,
+        }
+        if state.status is not AgentStatus.PLANNING or code not in allowed:
+            return self._illegal(state, AgentEventType.MODEL_RESULT)
+        return self._failed(state, AgentEventType.MODEL_RESULT, code)
+
     def record_trusted_approval(self, state: AgentState, event: TrustedApprovalEvent) -> AgentState:
         """Record one immutable human decision after source and binding validation."""
         if state.trusted_approval_decision is not None:

@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from customer_service.infrastructure.config.settings import DeepSeekSettings
 from customer_service.model_gateway.schemas import (
+    AgentPlanCandidate,
     CorrectionCandidate,
     GroundedResponseDraft,
     IntentCandidate,
@@ -112,6 +113,14 @@ class DeepSeekModelGateway:
             ModelTask.GROUNDED_RESPONSE_GENERATION: (
                 '{"text":"string","evidence_ids":["only ids from provided evidence"]}'
             ),
+            ModelTask.AGENT_PLAN_GENERATION: (
+                '{"schema_version":"agent-plan-v1","intent":"policy_question|order_query|return_request|unknown",'
+                '"requested_capability":"policy.lookup|order.get_authorized|return.evaluate|clarify|escalate",'
+                '"extracted_parameters":{"order_id":"string|null","return_reason":"changed_mind|quality_issue|null",'
+                '"item_condition":"resalable|not_resalable|null"},'
+                '"clarification_fields":["order_id|return_reason|item_condition"],'
+                '"uncertainty_reason":"ambiguous_intent|missing_information|unsupported_request|low_confidence|null"}'
+            ),
         }
         return contracts[task]
 
@@ -147,6 +156,8 @@ class DeepSeekModelGateway:
             return ReturnFieldCandidate.model_validate(payload)
         if task is ModelTask.CORRECTION_RECOGNITION:
             return CorrectionCandidate.model_validate(payload)
+        if task is ModelTask.AGENT_PLAN_GENERATION:
+            return AgentPlanCandidate.model_validate(payload)
         return GroundedResponseDraft.model_validate(payload)
 
     @staticmethod
