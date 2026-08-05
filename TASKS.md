@@ -857,6 +857,8 @@ T-501～T-507 已被既有规划占用，不得修改、复用或为缺少详细
 
 ### T-604 工具注册表、计划校验与权限边界
 
+**状态**：2026-08-05 Reviewer 最终审查 PASS；T-604 已完成，允许创建普通任务提交并进入 T-605。未创建 Tag 或远程推送。
+
 **目标**
 
 建立静态工具注册表和计划校验器，在任何工具执行前验证工具白名单、参数来源、可信身份、前置证据、副作用和调用预算。
@@ -889,6 +891,16 @@ T-501～T-507 已被既有规划占用，不得修改、复用或为缺少详细
 - 人工批准、调整和拒绝不注册为 Agent 可调用工具。
 - 只有受控执行器能签发 EvidenceRecord；模型提供的 evidence ID、失败结果和未知写入状态不能进入可公开证据集合。
 - 工具预算及每次重试消耗按版本化策略校验，预算不足不得执行或重试。
+
+**实际验证记录（2026-08-04）**
+
+- 新增版本化静态工具合同和计划校验器；注册表不持有回调或业务适配器，T-604 不执行任何工具。
+- 新增版本化 `EvidenceRecord`、受控签发和验证合同；成功结果才可由 `EXECUTING` 的受控执行器签发，失败或未知写入结果没有公开证据签发路径。
+- 计划只会被编译为不可调用的内部 `ValidatedToolStep`，并保持 `VALIDATING_PLAN`；缺少必要字段路由至 `CLARIFYING`，其余失败进入 `FAILED_SAFE`。
+- 实测覆盖未知工具、高风险直调、非法状态、非法/伪造参数来源、模型注入服务端字段、跨用户权限、重复调用和预算超限。
+- 已运行 `pytest tests/unit/agent_tools tests/unit/agent_runtime tests/unit/agent_planning tests/unit/model_gateway -q -p no:cacheprovider --basetemp=.pytest-tmp-t604-authority-final-targeted`：最终 EvidenceRecord 回执边界修复后 34 passed。
+- 收尾复测：`pytest -o addopts='' -q -p no:cacheprovider --basetemp=.pytest-tmp-t604-authority-final-full` 为 326 passed、1 skipped，并保留 1 条既有 Starlette TestClient 弃用警告；`ruff format --check .`、`ruff check .`、`mypy src tests` 和 `git diff --check` 均通过。
+- 2026-08-05 Reviewer 最终审查 PASS；Release Manager 复测 T-604 相关专项 34 项、文档测试 15 项通过，Ruff format（125 个文件）/check、mypy（124 个源文件）和 `git diff --check` 通过；允许进入 T-605。
 
 ### T-605 接入知识库、订单、资格评估与人工审批工具
 

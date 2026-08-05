@@ -257,3 +257,13 @@ def test_decision_is_single_terminal_and_proofs_bind_decision_and_event_type() -
     assert executor.record_trusted_approval(waiting, altered_type).reason_code is (
         AgentReasonCode.CHECKPOINT_BINDING_MISMATCH
     )
+
+
+def test_plan_validation_can_only_audit_clarify_or_safely_stop() -> None:
+    executor = ControlledAgentExecutor()
+    validated = _validated(executor)
+    assert executor.record_plan_validation(validated).reason_code is AgentReasonCode.PLAN_VALIDATED
+    assert executor.clarify_plan_validation(validated).status is AgentStatus.CLARIFYING
+    failed = executor.fail_plan_validation(validated, AgentReasonCode.TOOL_FORBIDDEN)
+    assert failed.status is AgentStatus.FAILED_SAFE
+    assert failed.reason_code is AgentReasonCode.TOOL_FORBIDDEN

@@ -16,6 +16,12 @@ from customer_service.agent_runtime.schemas import (
     DeterministicPlan,
     TrustedApprovalEvent,
 )
+from customer_service.agent_tools.evidence import (
+    EvidenceAuthority,
+    EvidenceVerifier,
+    InMemoryEvidenceAuthority,
+)
+from customer_service.agent_tools.schemas import EvidenceRecord, TrustedExecutionReceipt
 
 
 class InMemoryTrustedApprovalEventAuthority:
@@ -71,6 +77,17 @@ class ControlledAgentExecutor:
     ) -> None:
         self._policy = policy or AgentExecutionPolicy()
         self._approval_events = approval_events or InMemoryTrustedApprovalEventAuthority()
+        self._evidence_authority: EvidenceAuthority = InMemoryEvidenceAuthority()
+
+    @property
+    def policy(self) -> AgentExecutionPolicy:
+        """Read-only policy exposure for deterministic validation; it grants no execution."""
+        return self._policy
+
+    @property
+    def evidence_authority(self) -> EvidenceVerifier:
+        """Public verification only; receipt registration is not exposed at runtime."""
+        return EvidenceVerifier(self._evidence_authority)
 
     def receive_turn(self, *, conversation_id: str, turn_id: str, user_id: str) -> AgentState:
         return AgentState(
@@ -205,6 +222,48 @@ class ControlledAgentExecutor:
             AgentReasonCode.PLAN_POLICY_VIOLATION,
         }
         if state.status is not AgentStatus.PLANNING or code not in allowed:
+            return self._illegal(state, AgentEventType.MODEL_RESULT)
+        return self._failed(state, AgentEventType.MODEL_RESULT, code)
+
+    def record_plan_validation(self, state: AgentState) -> AgentState:
+        """Record T-604 validation only; T-605 alone may execute an approved step."""
+        if state.status is not AgentStatus.VALIDATING_PLAN:
+            return self._illegal(state, AgentEventType.MODEL_RESULT)
+        return self._move(
+            state,
+            AgentEventType.MODEL_RESULT,
+            AgentStatus.VALIDATING_PLAN,
+            AgentReasonCode.PLAN_VALIDATED,
+        )
+
+    def issue_evidence_from_trusted_receipt(
+        self, receipt: TrustedExecutionReceipt
+    ) -> EvidenceRecord | None:
+        """T-604's sole public path: issuance needs an authority-verified execution receipt."""
+        return self._evidence_authority.issue_from_trusted_receipt(receipt)
+
+    def clarify_plan_validation(self, state: AgentState) -> AgentState:
+        if state.status is not AgentStatus.VALIDATING_PLAN:
+            return self._illegal(state, AgentEventType.MODEL_RESULT)
+        return self._move(
+            state,
+            AgentEventType.MODEL_RESULT,
+            AgentStatus.CLARIFYING,
+            AgentReasonCode.PLAN_CLARIFICATION_REQUIRED,
+        )
+
+    def fail_plan_validation(self, state: AgentState, code: AgentReasonCode) -> AgentState:
+        allowed = {
+            AgentReasonCode.TOOL_NOT_REGISTERED,
+            AgentReasonCode.TOOL_FORBIDDEN,
+            AgentReasonCode.TOOL_STATE_NOT_ALLOWED,
+            AgentReasonCode.TOOL_PARAMETER_INVALID,
+            AgentReasonCode.TOOL_PARAMETER_SOURCE_UNTRUSTED,
+            AgentReasonCode.TOOL_PERMISSION_DENIED,
+            AgentReasonCode.TOOL_DUPLICATE_CALL,
+            AgentReasonCode.TOOL_BUDGET_EXCEEDED,
+        }
+        if state.status is not AgentStatus.VALIDATING_PLAN or code not in allowed:
             return self._illegal(state, AgentEventType.MODEL_RESULT)
         return self._failed(state, AgentEventType.MODEL_RESULT, code)
 
