@@ -4,13 +4,28 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from customer_service.agent_runtime.executor import ControlledAgentExecutor
+from customer_service.agent_runtime.schemas import AgentEventType
+from customer_service.agent_tools.execution import ControlledToolExecutor
+from customer_service.agent_tools.schemas import (
+    ParameterSource,
+    PlanValidationContext,
+    ToolId,
+    TrustedParameter,
+)
+from customer_service.agent_tools.validator import ToolPlanValidator
 from customer_service.approvals.repository import InMemoryApprovalTaskRepository
-from customer_service.approvals.schemas import ApprovalActorContext, ApprovalDecision
+from customer_service.approvals.schemas import (
+    ApprovalActorContext,
+    ApprovalDecision,
+    ApprovalDecisionRequest,
+)
 from customer_service.approvals.service import ApprovalTaskService
 from customer_service.eligibility.config import EligibilityRuleConfig
 from customer_service.eligibility.engine import EligibilityEngine
 from customer_service.eligibility.schemas import ReturnReason
 from customer_service.infrastructure.clients.mock_business import HttpOrderGateway
+from customer_service.model_gateway.schemas import AgentPlanCandidate
 from customer_service.orchestration.high_risk_schemas import (
     HighRiskContext,
     HighRiskDecisionInput,
@@ -139,6 +154,116 @@ def test_adjust_and_reject_do_not_create_cases() -> None:
             actor_context=ApprovalActorContext(actor_id="USR-AGENT-001"),
         )
         assert result.status is expected and result.service_case is None and cases.case_count == 0
+
+
+class FailingCheckpointRepository(InMemoryRecoveryCheckpointRepository):
+    def save_if_absent(self, record):  # type: ignore[no-untyped-def]
+        raise RuntimeError("checkpoint unavailable")
+
+
+def test_checkpoint_failure_compensates_new_pending_approval() -> None:
+    service, cases, approvals, _ = workflow(checkpoints=FailingCheckpointRepository())
+    result = service.start(HighRiskStartRequest(message="高金额退货"), context=context())
+    assert result.status is HighRiskWorkflowStatus.FAILED_SAFE
+    assert approvals.task_count == 0 and cases.case_count == 0
+
+
+def test_t605_high_risk_continuation_waits_then_resumes_once_after_human_decision() -> None:
+    high_risk, cases, approvals, checkpoints = workflow()
+    order_service = OrderQueryService(
+        HttpOrderGateway(TestClient(create_app(manifest_path=DATA_ROOT / "manifest.json")))
+    )
+    catalog = PolicyCatalog.from_manifest(DATA_ROOT / "manifest.json")
+    runtime = ControlledAgentExecutor()
+    validator = ToolPlanValidator(executor=runtime)
+    state = runtime.receive_turn(
+        conversation_id="CONV-HIGH", turn_id="TURN-HIGH", user_id="USR-DEMO-001"
+    )
+    state = runtime.apply_event(state, AgentEventType.USER_MESSAGE)
+    state = runtime.apply_event(state, AgentEventType.MODEL_RESULT)
+    state = runtime.accept_validated_model_plan(state)
+    plan = AgentPlanCandidate.model_validate(
+        {
+            "schema_version": "agent-plan-v1",
+            "intent": "return_request",
+            "requested_capability": "return.evaluate",
+            "extracted_parameters": {
+                "order_id": "ORD-HIGH-VALUE-001",
+                "return_reason": "changed_mind",
+                "item_condition": "resalable",
+            },
+            "clarification_fields": [],
+            "uncertainty_reason": None,
+        }
+    )
+    trusted = (
+        TrustedParameter(
+            name="order_id",
+            value="ORD-HIGH-VALUE-001",
+            source=ParameterSource.CONFIRMED_FIELD,
+        ),
+        TrustedParameter(
+            name="return_reason",
+            value="changed_mind",
+            source=ParameterSource.CONFIRMED_FIELD,
+        ),
+        TrustedParameter(
+            name="item_condition",
+            value="resalable",
+            source=ParameterSource.CONFIRMED_FIELD,
+        ),
+    )
+    validated = validator.validate(
+        state,
+        plan,
+        PlanValidationContext(authorized_user_id="USR-DEMO-001", trusted_parameters=trusted),
+    )
+    assert validated.permit is not None
+    approval_service = ApprovalTaskService(approvals)
+    recovery = ApprovalRecoveryService(
+        checkpoints,
+        approvals=approvals,
+        service_cases=ServiceCaseService(cases),
+    )
+    tool = ControlledToolExecutor(
+        permits=validator.execution_verifier,
+        orders=order_service,
+        policies=PolicyAnswerService(catalog),
+        catalog=catalog,
+        product_categories=product_categories(),
+        eligibility=EligibilityEngine(EligibilityRuleConfig.from_json(CONFIG_PATH)),
+        high_risk=high_risk,
+        recovery=recovery,
+        approvals=approval_service,
+    )
+    evaluated = tool.execute(state=state, permit=validated.permit)
+    assert evaluated.continuation_state is not None and evaluated.evidence is not None
+    assert evaluated.evidence.order_item_id == "ITEM-HIGH-VALUE-001"
+    started = tool.execute(state=evaluated.continuation_state, permit=evaluated.continuations[0])
+    continuation_state = started.continuation_state
+    assert started.evidence is not None and continuation_state is not None and cases.case_count == 0
+    assert started.evidence.order_item_id == evaluated.evidence.order_item_id
+    approval_id = next(
+        field.value for field in started.evidence.public_fields if field.name == "approval_id"
+    )
+    decided = approval_service.decide(
+        approval_id,
+        ApprovalDecisionRequest(
+            decision=ApprovalDecision.APPROVE,
+            note="批准",
+            expected_version=1,
+        ),
+        actor_context=ApprovalActorContext(actor_id="USR-AGENT-001"),
+    )
+    assert decided.approval is not None
+    resume = next(
+        permit for permit in started.continuations if permit.step.tool_id is ToolId.HIGH_RISK_RESUME
+    )
+    completed = tool.execute(state=continuation_state, permit=resume)
+    repeated = tool.execute(state=continuation_state, permit=resume)
+    assert completed.succeeded and completed.evidence is not None and cases.case_count == 1
+    assert completed.evidence.order_item_id == evaluated.evidence.order_item_id
+    assert repeated.code == "EXECUTION_PERMIT_INVALID"
 
 
 def test_decision_payload_rejects_forged_actor_and_uses_trusted_actor() -> None:

@@ -56,6 +56,8 @@ class ApprovalTaskRepository(Protocol):
 
     def find_by_id(self, approval_id: str) -> StoredApprovalTask | None: ...
 
+    def delete_pending(self, *, approval_id: str, idempotency_key: str) -> bool: ...
+
     def decide(
         self,
         *,
@@ -112,6 +114,20 @@ class InMemoryApprovalTaskRepository:
 
     def find_by_id(self, approval_id: str) -> StoredApprovalTask | None:
         return self._by_id.get(approval_id)
+
+    def delete_pending(self, *, approval_id: str, idempotency_key: str) -> bool:
+        """Compensate only a just-created, still-pending task after checkpoint failure."""
+        with self._lock:
+            task = self._by_id.get(approval_id)
+            if (
+                task is None
+                or task.idempotency_key != idempotency_key
+                or task.status is not ApprovalStatus.PENDING
+            ):
+                return False
+            self._by_id.pop(approval_id, None)
+            self._by_key.pop(idempotency_key, None)
+            return True
 
     def decide(
         self,

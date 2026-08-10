@@ -85,6 +85,7 @@ class ToolRegistry:
                 for tool_id in (
                     ToolId.HIGH_RISK_START_OR_GET,
                     ToolId.HIGH_RISK_RESUME,
+                    ToolId.APPROVAL_GET_STATUS,
                     ToolId.APPROVAL_DECIDE,
                 )
             ),

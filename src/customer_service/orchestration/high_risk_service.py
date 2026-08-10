@@ -97,15 +97,16 @@ class HighRiskReturnWorkflowService:
         )
         if decision.status is not EligibilityStatus.REQUIRES_APPROVAL:
             return self._failed("当前事项不属于可恢复的高风险审批路径。")
+        approval_context = ApprovalTaskContext(
+            current_user_id=context.current_user_id,
+            order=order,
+            order_item_id=item.order_item_id,
+            eligibility=decision,
+            policy_citations=policy.citations,
+        )
         created = self._approvals.create(
             ApprovalTaskCreateRequest(conversation_summary=request.message),
-            context=ApprovalTaskContext(
-                current_user_id=context.current_user_id,
-                order=order,
-                order_item_id=item.order_item_id,
-                eligibility=decision,
-                policy_citations=policy.citations,
-            ),
+            context=approval_context,
         )
         if (
             created.status
@@ -120,6 +121,10 @@ class HighRiskReturnWorkflowService:
             context=RecoveryAccessContext(current_user_id=context.current_user_id),
         )
         if recovered.stage is not RecoveryStage.WAITING_APPROVAL:
+            if created.status is ApprovalTaskResultStatus.CREATED:
+                self._approvals.rollback_uncheckpointed_creation(
+                    created.approval.approval_id, context=approval_context
+                )
             return self._failed("无法安全保存审批检查点。")
         return HighRiskWorkflowResult(
             status=HighRiskWorkflowStatus.WAITING_APPROVAL,

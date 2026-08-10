@@ -28,6 +28,7 @@ class ToolId(StrEnum):
     SERVICE_CASE_CREATE = "service_case.create"
     HIGH_RISK_START_OR_GET = "high_risk.start_or_get"
     HIGH_RISK_RESUME = "high_risk.resume"
+    APPROVAL_GET_STATUS = "approval.get_status"
     APPROVAL_DECIDE = "approval.decide"
 
 
@@ -75,6 +76,19 @@ class ValidatedToolStep(BaseModel):
     parameters: tuple[TrustedParameter, ...]
     budget_cost: int
     call_key: str = Field(min_length=1)
+
+
+class ExecutionPermit(BaseModel):
+    """Opaque, validator-issued permission; a tool executor must verify it before dispatch."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    permit_id: str = Field(min_length=1)
+    conversation_id: str = Field(min_length=1)
+    turn_id: str = Field(min_length=1)
+    user_id: str = Field(min_length=1)
+    step: ValidatedToolStep
+    proof: str = Field(min_length=1)
 
 
 class EvidenceScope(StrEnum):

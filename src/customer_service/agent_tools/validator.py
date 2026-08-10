@@ -7,8 +7,17 @@ from pydantic import BaseModel, ConfigDict
 
 from customer_service.agent_runtime.executor import ControlledAgentExecutor
 from customer_service.agent_runtime.schemas import AgentReasonCode, AgentState
+from customer_service.agent_tools.execution import (
+    ExecutionPermitVerifier,
+    _ExecutionPermitAuthority,
+    _verifier_for,
+)
 from customer_service.agent_tools.registry import ToolRegistry
-from customer_service.agent_tools.schemas import PlanValidationContext, ValidatedToolStep
+from customer_service.agent_tools.schemas import (
+    ExecutionPermit,
+    PlanValidationContext,
+    ValidatedToolStep,
+)
 from customer_service.model_gateway.schemas import AgentPlanCandidate
 
 
@@ -24,6 +33,7 @@ class ToolPlanValidationResult(BaseModel):
     state: AgentState
     outcome: ToolPlanOutcome
     step: ValidatedToolStep | None = None
+    permit: ExecutionPermit | None = None
     reason_code: AgentReasonCode
 
 
@@ -33,6 +43,12 @@ class ToolPlanValidator:
     ) -> None:
         self._executor = executor
         self._registry = registry or ToolRegistry()
+        self._permits = _ExecutionPermitAuthority()
+
+    @property
+    def execution_verifier(self) -> ExecutionPermitVerifier:
+        """Expose consumption only; public callers cannot sign an arbitrary step."""
+        return _verifier_for(self._permits)
 
     def validate(
         self, state: AgentState, plan: AgentPlanCandidate, context: PlanValidationContext
@@ -93,6 +109,7 @@ class ToolPlanValidator:
             state=self._executor.record_plan_validation(state),
             outcome=ToolPlanOutcome.VALIDATED,
             step=step,
+            permit=self._permits._issue(state=state, step=step),
             reason_code=AgentReasonCode.PLAN_VALIDATED,
         )
 

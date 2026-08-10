@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 from customer_service.agent_runtime.executor import ControlledAgentExecutor
-from customer_service.agent_tools.evidence import EvidenceRejectReason
+from customer_service.agent_tools.evidence import EvidenceRejectReason, InMemoryEvidenceAuthority
 from customer_service.agent_tools.schemas import (
     EvidenceBinding,
     EvidenceIssue,
@@ -155,6 +155,30 @@ def test_direct_success_issue_or_forged_receipt_cannot_issue_public_evidence() -
         public_fields=(EvidencePublicField(name="service_case_id", value="CASE-FAKE"),),
     )
     assert executor.issue_evidence_from_trusted_receipt(_receipt(fake_issue)) is None
+
+
+def test_direct_production_authority_cannot_sign_forged_business_facts() -> None:
+    authority = InMemoryEvidenceAuthority()
+    fake_receipt = _receipt(
+        _issue(
+            tool_id=ToolId.SERVICE_CASE_CREATE,
+            order_id="ORD-VICTIM",
+            order_item_id="ITEM-VICTIM",
+            public_fields=(
+                EvidencePublicField(name="service_case_id", value="CASE-FAKE"),
+                EvidencePublicField(name="approval_id", value="APPROVAL-FAKE"),
+                EvidencePublicField(name="eligibility_code", value="eligible"),
+            ),
+        ),
+        proof="attacker-proof",
+    )
+
+    assert not hasattr(authority, "_issue_for_controlled_execution")
+    assert not hasattr(authority, "register")
+    assert authority.issue_from_trusted_receipt(fake_receipt) is None
+    # Even the remaining digest helper is not a signing capability.
+    assert authority._receipt_key(fake_receipt)
+    assert authority.issue_from_trusted_receipt(fake_receipt) is None
 
 
 def test_only_test_controlled_receipt_fixture_can_issue_and_verify() -> None:

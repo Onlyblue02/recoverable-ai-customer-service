@@ -68,6 +68,30 @@ class ApprovalTaskService:
         except Exception:
             return self._safe_failure()
 
+    def get_for_user(self, approval_id: str, *, current_user_id: str) -> ApprovalTaskResult:
+        """Read-only, non-enumerating status lookup for controlled tool adapters."""
+        try:
+            stored = self._repository.find_by_id(approval_id.strip().upper())
+            if stored is None or stored.user_id != current_user_id:
+                return self._blocked(ApprovalErrorCode.APPROVAL_NOT_FOUND, "无法访问该审批任务。")
+            return ApprovalTaskResult(
+                status=ApprovalTaskResultStatus.EXISTING,
+                error_code=None,
+                message="已读取可信审批状态。",
+                approval=self._summary(stored),
+            )
+        except Exception:
+            return self._safe_failure()
+
+    def rollback_uncheckpointed_creation(
+        self, approval_id: str, *, context: ApprovalTaskContext
+    ) -> bool:
+        """Internal compensation; never changes a decided or pre-existing approval."""
+        return self._repository.delete_pending(
+            approval_id=approval_id,
+            idempotency_key=self._idempotency_key(context),
+        )
+
     def decide(
         self,
         approval_id: str,

@@ -134,6 +134,21 @@ def test_create_high_risk_task_is_idempotent_and_has_complete_human_context() ->
     assert repository.task_count == 1
 
 
+def test_controlled_status_lookup_does_not_enumerate_other_users() -> None:
+    repository = InMemoryApprovalTaskRepository()
+    service = ApprovalTaskService(repository)
+    created = service.create(create_request(), context=context())
+    assert created.approval is not None
+    denied = service.get_for_user(
+        created.approval.approval_id,
+        current_user_id="USR-OTHER",
+    )
+    missing = service.get_for_user("APR-FAKE", current_user_id="USR-DEMO-001")
+    assert denied.status is missing.status is ApprovalTaskResultStatus.BLOCKED
+    assert denied.error_code is missing.error_code is ApprovalErrorCode.APPROVAL_NOT_FOUND
+    assert denied.approval is missing.approval is None
+
+
 @pytest.mark.parametrize(
     ("choice", "status"),
     [
