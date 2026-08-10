@@ -5,7 +5,7 @@ import json
 import secrets
 from datetime import datetime
 from enum import StrEnum
-from typing import Protocol
+from typing import Any, Protocol
 
 from customer_service.agent_tools.schemas import (
     EvidenceBinding,
@@ -29,7 +29,7 @@ class EvidenceRejectReason(StrEnum):
 
 class EvidenceAuthority(Protocol):
     def issue_from_trusted_receipt(
-        self, receipt: TrustedExecutionReceipt
+        self, receipt: TrustedExecutionReceipt, *, payload: Any | None = None
     ) -> EvidenceRecord | None: ...
 
     def invalidate(self, record: EvidenceRecord, *, reason: str) -> EvidenceRecord: ...
@@ -37,6 +37,10 @@ class EvidenceAuthority(Protocol):
     def verify(
         self, record: EvidenceRecord, binding: EvidenceBinding, *, now: datetime
     ) -> EvidenceRejectReason | None: ...
+
+    def resolve_payload(
+        self, record: EvidenceRecord, binding: EvidenceBinding, *, now: datetime
+    ) -> Any | None: ...
 
 
 class EvidenceVerifier:
@@ -53,6 +57,12 @@ class EvidenceVerifier:
     ) -> EvidenceRejectReason | None:
         return self._authority.verify(record, binding, now=now)
 
+    def resolve_payload(
+        self, record: EvidenceRecord, binding: EvidenceBinding, *, now: datetime
+    ) -> Any | None:
+        """Return only the executor-retained payload for a currently valid record."""
+        return self._authority.resolve_payload(record, binding, now=now)
+
 
 class InMemoryEvidenceAuthority:
     """T-604 test authority. T-605 may supply actual successful tool results to it."""
@@ -61,8 +71,11 @@ class InMemoryEvidenceAuthority:
         self._receipt_proofs: dict[str, str] = {}
         self._records_by_receipt: dict[str, EvidenceRecord] = {}
         self._revoked_ids: set[str] = set()
+        self.__payloads_by_evidence_id: dict[str, Any] = {}
 
-    def issue_from_trusted_receipt(self, receipt: TrustedExecutionReceipt) -> EvidenceRecord | None:
+    def issue_from_trusted_receipt(
+        self, receipt: TrustedExecutionReceipt, *, payload: Any | None = None
+    ) -> EvidenceRecord | None:
         """Issue only from a receipt verified against this authority's private execution ledger."""
         if receipt.result_status is not ToolResultStatus.SUCCEEDED:
             return None
@@ -96,6 +109,8 @@ class InMemoryEvidenceAuthority:
         proof = secrets.token_urlsafe(24)
         record = draft.model_copy(update={"payload_digest": digest, "proof": proof})
         self._records_by_receipt[receipt_key] = record
+        if payload is not None:
+            self.__payloads_by_evidence_id[record.evidence_id] = payload
         return record
 
     def invalidate(self, record: EvidenceRecord, *, reason: str) -> EvidenceRecord:
@@ -138,6 +153,13 @@ class InMemoryEvidenceAuthority:
         ):
             return EvidenceRejectReason.CONTRACT_MISMATCH
         return None
+
+    def resolve_payload(
+        self, record: EvidenceRecord, binding: EvidenceBinding, *, now: datetime
+    ) -> Any | None:
+        if self.verify(record, binding, now=now) is not None:
+            return None
+        return self.__payloads_by_evidence_id.get(record.evidence_id)
 
     @staticmethod
     def _receipt_key(receipt: TrustedExecutionReceipt) -> str:

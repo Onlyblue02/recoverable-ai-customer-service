@@ -3,6 +3,7 @@ from typing import Any
 
 from customer_service.model_gateway.schemas import (
     AgentPlanCandidate,
+    AgentResponseDraftCandidate,
     CorrectionCandidate,
     GroundedResponseDraft,
     IntentCandidate,
@@ -25,6 +26,13 @@ class FakeModelGateway:
         payload = self._outputs.get(request.case_id, self._default_payload(request))
         try:
             output = self._parse_output(request.task, payload)
+            if isinstance(output, AgentResponseDraftCandidate):
+                trusted_ids = {evidence.evidence_id for evidence in request.evidence}
+                referenced = {
+                    evidence_id for claim in output.claims for evidence_id in claim.evidence_ids
+                }
+                if not referenced.issubset(trusted_ids):
+                    raise ValueError("response references unknown evidence")
         except ValueError:
             return ModelResponse(
                 status=ModelResultStatus.INVALID_OUTPUT,
@@ -58,6 +66,17 @@ class FakeModelGateway:
                 "clarification_fields": ["order_id"],
                 "uncertainty_reason": "ambiguous_intent",
             }
+        if request.task is ModelTask.AGENT_RESPONSE_DRAFT_GENERATION:
+            return {
+                "schema_version": "agent-response-draft-v1",
+                "text": "已根据本轮可信证据整理处理结果。",
+                "claims": [
+                    {
+                        "claim_type": "policy",
+                        "evidence_ids": [request.evidence[0].evidence_id],
+                    }
+                ],
+            }
         return {
             "text": "请以提供的政策证据为准。",
             "evidence_ids": [request.evidence[0].evidence_id],
@@ -73,4 +92,6 @@ class FakeModelGateway:
             return CorrectionCandidate.model_validate(payload)
         if task is ModelTask.AGENT_PLAN_GENERATION:
             return AgentPlanCandidate.model_validate(payload)
+        if task is ModelTask.AGENT_RESPONSE_DRAFT_GENERATION:
+            return AgentResponseDraftCandidate.model_validate(payload)
         return GroundedResponseDraft.model_validate(payload)

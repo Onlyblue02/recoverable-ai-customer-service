@@ -28,7 +28,10 @@ class ControlledReceiptFixtureAuthority:
         self._receipts.add(receipt)
         return receipt
 
-    def issue_from_trusted_receipt(self, receipt: TrustedExecutionReceipt) -> EvidenceRecord | None:
+    def issue_from_trusted_receipt(
+        self, receipt: TrustedExecutionReceipt, *, payload: object | None = None
+    ) -> EvidenceRecord | None:
+        del payload
         if receipt not in self._receipts or receipt.result_status is not ToolResultStatus.SUCCEEDED:
             return None
         if receipt.scope is EvidenceScope.WORKFLOW and receipt.workflow_id is None:
@@ -82,6 +85,12 @@ class ControlledReceiptFixtureAuthority:
             return EvidenceRejectReason.CONTRACT_MISMATCH
         if record.scope is EvidenceScope.WORKFLOW and record.workflow_id != binding.workflow_id:
             return EvidenceRejectReason.BINDING_MISMATCH
+        return None
+
+    def resolve_payload(
+        self, record: EvidenceRecord, binding: EvidenceBinding, *, now: datetime
+    ) -> object | None:
+        del record, binding, now
         return None
 
 

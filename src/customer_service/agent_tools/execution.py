@@ -13,6 +13,7 @@ from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from customer_service.agent_response.schemas import TrustedEvidenceSnapshot
 from customer_service.agent_runtime.schemas import AgentState, AgentStatus
 from customer_service.agent_tools.evidence import EvidenceVerifier, InMemoryEvidenceAuthority
 from customer_service.agent_tools.schemas import (
@@ -39,7 +40,7 @@ from customer_service.orchestration.high_risk_schemas import (
 )
 from customer_service.orchestration.high_risk_service import HighRiskReturnWorkflowService
 from customer_service.rag.catalog import PolicyCatalog
-from customer_service.rag.schemas import PolicyAnswerStatus, PolicyQuery
+from customer_service.rag.schemas import PolicyAnswerStatus, PolicyCitation, PolicyQuery
 from customer_service.rag.service import PolicyAnswerService
 from customer_service.recovery.schemas import RecoveryAccessContext
 from customer_service.recovery.service import ApprovalRecoveryService
@@ -71,6 +72,7 @@ class ToolExecutionResult(BaseModel):
     evidence: EvidenceRecord | None = None
     continuations: tuple[ExecutionPermit, ...] = ()
     continuation_state: AgentState | None = None
+    response_snapshot: TrustedEvidenceSnapshot | None = None
 
 
 class PolicyContextProvider(Protocol):
@@ -191,6 +193,7 @@ class ControlledToolExecutor:
             order_item_id: str | None,
             public_fields: tuple[EvidencePublicField, ...],
             result_status: ToolResultStatus,
+            payload: TrustedEvidenceSnapshot | None,
         ) -> EvidenceRecord | None:
             """Closure-held capability; no authority method or constructor exposes it."""
             receipt = TrustedExecutionReceipt(
@@ -214,12 +217,20 @@ class ControlledToolExecutor:
             proof = secrets.token_urlsafe(24)
             trusted = receipt.model_copy(update={"proof": proof})
             evidence_authority._receipt_proofs[key] = proof
-            return evidence_authority.issue_from_trusted_receipt(trusted)
+            return evidence_authority.issue_from_trusted_receipt(trusted, payload=payload)
 
         self.__issue_evidence: Callable[..., EvidenceRecord | None] = issue_evidence
         self._policy_contexts = policy_contexts
         self._continuation_data: dict[
-            str, tuple[AuthorizedOrderFacts, str, EligibilityResult, ReturnReason, str]
+            str,
+            tuple[
+                AuthorizedOrderFacts,
+                str,
+                EligibilityResult,
+                ReturnReason,
+                str,
+                tuple[PolicyCitation, ...],
+            ],
         ] = {}
         self._workflow_data: dict[str, tuple[str, str]] = {}
 
@@ -246,6 +257,9 @@ class ControlledToolExecutor:
                 if order.status is OrderQueryStatus.FOUND
                 else "ORDER_UNAVAILABLE",
                 order=order,
+                response_snapshot=(
+                    TrustedEvidenceSnapshot(order=order.order) if order.order is not None else None
+                ),
             )
             return self._with_evidence(state=state, step=step, result=result)
         if step.tool_id is ToolId.RETURN_EVALUATE:
@@ -282,6 +296,9 @@ class ControlledToolExecutor:
             succeeded=succeeded,
             code=answer.status.value,
             policy_ids=answer.candidate_policy_ids if succeeded else (),
+            response_snapshot=(
+                TrustedEvidenceSnapshot(policy_citations=answer.citations) if succeeded else None
+            ),
         )
         return self._with_evidence(state=state, step=step, result=result)
 
@@ -320,6 +337,7 @@ class ControlledToolExecutor:
             result_status=ToolResultStatus.SUCCEEDED
             if result.succeeded
             else ToolResultStatus.FAILED,
+            payload=result.response_snapshot,
         )
         return result.model_copy(update={"evidence": record})
 
@@ -365,6 +383,11 @@ class ControlledToolExecutor:
                 as_of=date.today(),
             )
         )
+        applicable_citations = tuple(
+            citation
+            for citation in answer.citations
+            if citation.policy_id in decision.applicable_policy_ids
+        )
         result = ToolExecutionResult(
             succeeded=True,
             code=decision.status.value,
@@ -372,6 +395,11 @@ class ControlledToolExecutor:
             order_item_id=item.order_item_id,
             eligibility_code=decision.status.value,
             policy_ids=decision.applicable_policy_ids,
+            response_snapshot=TrustedEvidenceSnapshot(
+                policy_citations=applicable_citations,
+                order=order.order,
+                eligibility=decision,
+            ),
         )
         if decision.status.value in {"eligible", "requires_approval"}:
             tool_id = (
@@ -396,6 +424,7 @@ class ControlledToolExecutor:
                 decision,
                 reason,
                 values["item_condition"],
+                applicable_citations,
             )
             result = result.model_copy(
                 update={
@@ -411,7 +440,7 @@ class ControlledToolExecutor:
         binding = self._continuation_data.pop(permit.permit_id, None)
         if self._service_cases is None or binding is None:
             return ToolExecutionResult(succeeded=False, code="LOW_RISK_CONTINUATION_INVALID")
-        order, item_id, decision, _, _ = binding
+        order, item_id, decision, _, _, citations = binding
         created = self._service_cases.create(
             ServiceCaseCreateRequest(order=order, order_item_id=item_id),
             access_context=ServiceCaseAccessContext(current_user_id=state.user_id),
@@ -437,6 +466,16 @@ class ControlledToolExecutor:
             order_item_id=item_id,
             public_fields=fields,
             result_status=ToolResultStatus.SUCCEEDED if succeeded else ToolResultStatus.FAILED,
+            payload=(
+                None
+                if created.service_case is None
+                else TrustedEvidenceSnapshot(
+                    policy_citations=tuple(citations),
+                    order=order,
+                    eligibility=decision,
+                    service_case=created.service_case,
+                )
+            ),
         )
         return ToolExecutionResult(
             succeeded=succeeded,
@@ -450,7 +489,7 @@ class ControlledToolExecutor:
         binding = self._continuation_data.pop(permit.permit_id, None)
         if self._high_risk is None or binding is None:
             return ToolExecutionResult(succeeded=False, code="HIGH_RISK_CONTINUATION_INVALID")
-        order, _, decision, reason, item_condition = binding
+        order, _, decision, reason, item_condition, _ = binding
         started = self._high_risk.start(
             HighRiskStartRequest(message="受控高风险退货请求"),
             context=HighRiskContext(
@@ -474,6 +513,16 @@ class ControlledToolExecutor:
             if started.approval is None
             else (EvidencePublicField(name="approval_id", value=started.approval.approval_id),),
             result_status=ToolResultStatus.SUCCEEDED if succeeded else ToolResultStatus.FAILED,
+            payload=(
+                None
+                if started.approval is None
+                else TrustedEvidenceSnapshot(
+                    policy_citations=started.approval.policy_citations,
+                    order=started.approval.order,
+                    eligibility=started.approval.eligibility,
+                    approval=started.approval,
+                )
+            ),
         )
         result = ToolExecutionResult(
             succeeded=succeeded, code=started.status.value, evidence=record
@@ -525,6 +574,16 @@ class ControlledToolExecutor:
             if result.approval is None
             else (EvidencePublicField(name="approval_id", value=result.approval.approval_id),),
             result_status=ToolResultStatus.SUCCEEDED if succeeded else ToolResultStatus.FAILED,
+            payload=(
+                None
+                if result.approval is None
+                else TrustedEvidenceSnapshot(
+                    policy_citations=result.approval.policy_citations,
+                    order=result.approval.order,
+                    eligibility=result.approval.eligibility,
+                    approval=result.approval,
+                )
+            ),
         )
         del workflow_id
         return ToolExecutionResult(succeeded=succeeded, code=result.status.value, evidence=record)
@@ -562,5 +621,16 @@ class ControlledToolExecutor:
             order_item_id=None if result.approval is None else result.approval.order_item_id,
             public_fields=fields,
             result_status=ToolResultStatus.SUCCEEDED if succeeded else ToolResultStatus.FAILED,
+            payload=(
+                None
+                if result.approval is None
+                else TrustedEvidenceSnapshot(
+                    policy_citations=result.approval.policy_citations,
+                    order=result.approval.order,
+                    eligibility=result.approval.eligibility,
+                    approval=result.approval,
+                    service_case=result.service_case,
+                )
+            ),
         )
         return ToolExecutionResult(succeeded=succeeded, code=result.stage.value, evidence=record)

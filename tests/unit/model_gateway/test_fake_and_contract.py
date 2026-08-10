@@ -5,6 +5,7 @@ from customer_service.model_gateway.fake import FakeModelGateway
 from customer_service.model_gateway.schemas import (
     EvidenceSnippet,
     ModelRequest,
+    ModelResultStatus,
     ModelTask,
 )
 
@@ -75,3 +76,25 @@ def test_fake_agent_plan_is_deterministic_and_rejects_unknown_capability() -> No
         }
     ).generate(request)
     assert invalid.status.name == "INVALID_OUTPUT"
+
+
+def test_fake_agent_response_is_deterministic_and_rejects_unknown_evidence() -> None:
+    request = ModelRequest(
+        case_id="agent-response",
+        task=ModelTask.AGENT_RESPONSE_DRAFT_GENERATION,
+        text="synthetic",
+        prompt_version="t606-v1",
+        evidence=(EvidenceSnippet(evidence_id="EVD-1", text="trusted"),),
+    )
+    fake = FakeModelGateway()
+    assert fake.generate(request) == fake.generate(request)
+    invalid = FakeModelGateway(
+        {
+            "agent-response": {
+                "schema_version": "agent-response-draft-v1",
+                "text": "伪造",
+                "claims": [{"claim_type": "order", "evidence_ids": ["EVD-FAKE"]}],
+            }
+        }
+    ).generate(request)
+    assert invalid.status is ModelResultStatus.INVALID_OUTPUT

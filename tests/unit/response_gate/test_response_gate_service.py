@@ -116,7 +116,7 @@ def evidence(*, high_risk: bool = False, approved: bool = False) -> ResponseEvid
 
 def grounded_draft(*, high_risk: bool = False, approved: bool = False) -> ResponseDraft:
     trusted = evidence(high_risk=high_risk, approved=approved)
-    return ResponseDraft(
+    draft = ResponseDraft(
         message="申请已创建。",
         policy_citations=trusted.policy_citations,
         order=trusted.order,
@@ -128,6 +128,9 @@ def grounded_draft(*, high_risk: bool = False, approved: bool = False) -> Respon
         claims_eligibility=True,
         claims_completion=True,
     )
+    rendered = ResponseGateService.render_grounded(draft)
+    assert rendered is not None
+    return draft.model_copy(update={"message": rendered})
 
 
 def test_grounded_standard_completion_is_allowed() -> None:
@@ -173,15 +176,15 @@ def test_policy_citation_requires_complete_trusted_equality(changed: dict[str, o
             ),
             ResponseGateReason.UNAUTHORIZED_ORDER_FACT,
         ),
-        (ResponseDraft(message="申请已创建"), ResponseGateReason.UNCONFIRMED_COMPLETION),
+        (ResponseDraft(message="申请已创建"), ResponseGateReason.UNSUPPORTED_FREE_TEXT),
     ],
 )
 def test_unsupported_public_claims_are_blocked(
     draft: ResponseDraft, expected: ResponseGateReason
 ) -> None:
     result = ResponseGateService().evaluate(draft, evidence=evidence())
-    assert result.action is ResponseGateAction.CLARIFY
-    assert expected in result.reasons and result.response is None
+    assert result.action in {ResponseGateAction.CLARIFY, ResponseGateAction.SAFE_REWRITE}
+    assert expected in result.reasons
 
 
 def test_sensitive_text_is_safely_rewritten_without_facts() -> None:
@@ -190,6 +193,42 @@ def test_sensitive_text_is_safely_rewritten_without_facts() -> None:
     )
     assert result.action is ResponseGateAction.SAFE_REWRITE
     assert result.response is not None and "password" not in result.message
+
+
+@pytest.mark.parametrize(
+    "message",
+    (
+        "您可以退款。",
+        "可以退货。",
+        "不能退款。",
+        "可办理退货。",
+        "会为您退款。",
+    ),
+)
+def test_unstructured_return_conclusions_are_never_allowed(message: str) -> None:
+    gate = ResponseGateService()
+    empty = gate.evaluate(ResponseDraft(message=message), evidence=ResponseEvidenceContext())
+    order_only = gate.evaluate(
+        ResponseDraft(message=message),
+        evidence=ResponseEvidenceContext(current_user_id="USR-DEMO-001", order=order()),
+    )
+    policy_only = gate.evaluate(
+        ResponseDraft(message=message),
+        evidence=ResponseEvidenceContext(policy_citations=(citation(),)),
+    )
+
+    for result in (empty, order_only, policy_only):
+        assert result.action is not ResponseGateAction.ALLOW
+        assert message not in result.message
+
+
+@pytest.mark.parametrize("message", ("已批准。", "已完成。", "会为您处理。"))
+def test_unstructured_high_risk_success_synonyms_are_never_allowed(message: str) -> None:
+    result = ResponseGateService().evaluate(
+        ResponseDraft(message=message), evidence=evidence(high_risk=True)
+    )
+    assert result.action is not ResponseGateAction.ALLOW
+    assert message not in result.message
 
 
 def test_high_risk_completion_without_approval_escalates() -> None:

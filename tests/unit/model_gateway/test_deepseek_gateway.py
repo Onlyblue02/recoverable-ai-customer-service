@@ -15,7 +15,10 @@ from customer_service.model_gateway.schemas import (
 
 def request(task: ModelTask = ModelTask.INTENT_CLASSIFICATION) -> ModelRequest:
     evidence: tuple[EvidenceSnippet, ...] = ()
-    if task is ModelTask.GROUNDED_RESPONSE_GENERATION:
+    if task in {
+        ModelTask.GROUNDED_RESPONSE_GENERATION,
+        ModelTask.AGENT_RESPONSE_DRAFT_GENERATION,
+    }:
         evidence = (EvidenceSnippet(evidence_id="POL-1@1", text="合成政策证据"),)
     return ModelRequest(
         case_id="synthetic-case",
@@ -158,3 +161,51 @@ def test_agent_plan_invalid_after_repair_safely_degrades() -> None:
         request(ModelTask.AGENT_PLAN_GENERATION)
     )
     assert result.status is ModelResultStatus.INVALID_OUTPUT
+
+
+def test_agent_response_schema_is_repaired_once_then_accepted() -> None:
+    calls = 0
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return response(
+            "not-json"
+            if calls == 1
+            else json.dumps(
+                {
+                    "schema_version": "agent-response-draft-v1",
+                    "text": "根据可信证据处理。",
+                    "claims": [{"claim_type": "policy", "evidence_ids": ["POL-1@1"]}],
+                }
+            )
+        )
+
+    result = DeepSeekModelGateway(
+        configured_settings(), client=httpx.Client(transport=httpx.MockTransport(handler))
+    ).generate(request(ModelTask.AGENT_RESPONSE_DRAFT_GENERATION))
+    assert result.status is ModelResultStatus.SUCCEEDED
+    assert calls == 2
+
+
+def test_agent_response_invalid_or_unknown_reference_after_repair_is_rejected() -> None:
+    calls = 0
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return response(
+            json.dumps(
+                {
+                    "schema_version": "agent-response-draft-v1",
+                    "text": "伪造",
+                    "claims": [{"claim_type": "approval", "evidence_ids": ["EVD-FAKE"]}],
+                }
+            )
+        )
+
+    result = DeepSeekModelGateway(
+        configured_settings(), client=httpx.Client(transport=httpx.MockTransport(handler))
+    ).generate(request(ModelTask.AGENT_RESPONSE_DRAFT_GENERATION))
+    assert result.status is ModelResultStatus.INVALID_OUTPUT
+    assert result.output is None and calls == 2

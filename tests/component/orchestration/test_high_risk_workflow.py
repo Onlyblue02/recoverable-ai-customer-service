@@ -1,11 +1,14 @@
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
+from customer_service.agent_response.schemas import AgentResponseOutcome
+from customer_service.agent_response.service import AgentResponseService, EvidenceContextResolver
 from customer_service.agent_runtime.executor import ControlledAgentExecutor
-from customer_service.agent_runtime.schemas import AgentEventType
+from customer_service.agent_runtime.schemas import AgentEventType, AgentStatus
 from customer_service.agent_tools.execution import ControlledToolExecutor
 from customer_service.agent_tools.schemas import (
     ParameterSource,
@@ -25,6 +28,7 @@ from customer_service.eligibility.config import EligibilityRuleConfig
 from customer_service.eligibility.engine import EligibilityEngine
 from customer_service.eligibility.schemas import ReturnReason
 from customer_service.infrastructure.clients.mock_business import HttpOrderGateway
+from customer_service.model_gateway.fake import FakeModelGateway
 from customer_service.model_gateway.schemas import AgentPlanCandidate
 from customer_service.orchestration.high_risk_schemas import (
     HighRiskContext,
@@ -264,6 +268,52 @@ def test_t605_high_risk_continuation_waits_then_resumes_once_after_human_decisio
     assert completed.succeeded and completed.evidence is not None and cases.case_count == 1
     assert completed.evidence.order_item_id == evaluated.evidence.order_item_id
     assert repeated.code == "EXECUTION_PERMIT_INVALID"
+    drafting_state = state.model_copy(update={"status": AgentStatus.DRAFTING})
+    resolver = EvidenceContextResolver(tool.evidence_verifier)
+    assert (
+        resolver.resolve(drafting_state, (evaluated.evidence,), now=datetime.now(UTC)) is not None
+    )
+    assert (
+        resolver.resolve(drafting_state, (completed.evidence,), now=datetime.now(UTC)) is not None
+    )
+    service_case_id = next(
+        field.value for field in completed.evidence.public_fields if field.name == "service_case_id"
+    )
+    response = AgentResponseService(
+        executor=runtime,
+        model_gateway=FakeModelGateway(
+            {
+                "TURN-HIGH": {
+                    "schema_version": "agent-response-draft-v1",
+                    "text": (
+                        "该退货申请需要人工审批。人工审批已批准。"
+                        f"售后申请已创建，编号为 {service_case_id}。"
+                    ),
+                    "claims": [
+                        {
+                            "claim_type": "eligibility",
+                            "evidence_ids": [completed.evidence.evidence_id],
+                        },
+                        {
+                            "claim_type": "approval",
+                            "evidence_ids": [completed.evidence.evidence_id],
+                        },
+                        {
+                            "claim_type": "completion",
+                            "evidence_ids": [completed.evidence.evidence_id],
+                        },
+                    ],
+                }
+            }
+        ),
+        evidence_verifier=tool.evidence_verifier,
+    ).generate(
+        drafting_state,
+        text="查询审批结果",
+        evidence=(evaluated.evidence, completed.evidence),
+        prompt_version="t606-v1",
+    )
+    assert response.outcome is AgentResponseOutcome.ALLOWED
 
 
 def test_decision_payload_rejects_forged_actor_and_uses_trusted_actor() -> None:

@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from customer_service.infrastructure.config.settings import DeepSeekSettings
 from customer_service.model_gateway.schemas import (
     AgentPlanCandidate,
+    AgentResponseDraftCandidate,
     CorrectionCandidate,
     GroundedResponseDraft,
     IntentCandidate,
@@ -121,6 +122,11 @@ class DeepSeekModelGateway:
                 '"clarification_fields":["order_id|return_reason|item_condition"],'
                 '"uncertainty_reason":"ambiguous_intent|missing_information|unsupported_request|low_confidence|null"}'
             ),
+            ModelTask.AGENT_RESPONSE_DRAFT_GENERATION: (
+                '{"schema_version":"agent-response-draft-v1","text":"string",'
+                '"claims":[{"claim_type":"policy|order|eligibility|approval|completion",'
+                '"evidence_ids":["only ids from provided evidence"]}]}'
+            ),
         }
         return contracts[task]
 
@@ -144,6 +150,13 @@ class DeepSeekModelGateway:
                 trusted_ids = {evidence.evidence_id for evidence in request.evidence}
                 if not set(output.evidence_ids).issubset(trusted_ids):
                     return None
+            if isinstance(output, AgentResponseDraftCandidate):
+                trusted_ids = {evidence.evidence_id for evidence in request.evidence}
+                referenced = {
+                    evidence_id for claim in output.claims for evidence_id in claim.evidence_ids
+                }
+                if not referenced.issubset(trusted_ids):
+                    return None
             return output
         except (json.JSONDecodeError, ValidationError, TypeError):
             return None
@@ -158,6 +171,8 @@ class DeepSeekModelGateway:
             return CorrectionCandidate.model_validate(payload)
         if task is ModelTask.AGENT_PLAN_GENERATION:
             return AgentPlanCandidate.model_validate(payload)
+        if task is ModelTask.AGENT_RESPONSE_DRAFT_GENERATION:
+            return AgentResponseDraftCandidate.model_validate(payload)
         return GroundedResponseDraft.model_validate(payload)
 
     @staticmethod

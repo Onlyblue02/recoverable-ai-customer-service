@@ -355,6 +355,30 @@ class ControlledAgentExecutor:
             AgentReasonCode.TOOL_RESULT_ACCEPTED,
         )
 
+    def route_response_gate(
+        self, state: AgentState, *, target: AgentStatus, code: AgentReasonCode
+    ) -> AgentState:
+        """T-606 deterministic gate transition; model output cannot select it."""
+        allowed = {
+            (AgentStatus.COMPLETED, AgentReasonCode.RESPONSE_GATE_ALLOWED),
+            (AgentStatus.COMPLETED, AgentReasonCode.RESPONSE_GATE_REWRITTEN),
+            (AgentStatus.CLARIFYING, AgentReasonCode.RESPONSE_GATE_CLARIFY),
+            (AgentStatus.ESCALATING, AgentReasonCode.RESPONSE_GATE_ESCALATE),
+            (AgentStatus.FAILED_SAFE, AgentReasonCode.RESPONSE_EVIDENCE_INVALID),
+        }
+        if state.status is not AgentStatus.GATING or (target, code) not in allowed:
+            return self._illegal(state, AgentEventType.TOOL_RESULT)
+        return self._move(state, AgentEventType.TOOL_RESULT, target, code)
+
+    def fail_response_model(self, state: AgentState, code: AgentReasonCode) -> AgentState:
+        if state.status is not AgentStatus.DRAFTING or code not in {
+            AgentReasonCode.RESPONSE_MODEL_INVALID,
+            AgentReasonCode.RESPONSE_MODEL_UNAVAILABLE,
+            AgentReasonCode.RESPONSE_EVIDENCE_INVALID,
+        }:
+            return self._illegal(state, AgentEventType.MODEL_RESULT)
+        return self._failed(state, AgentEventType.MODEL_RESULT, code)
+
     def _tool_result(self, state: AgentState) -> AgentState:
         if state.status is AgentStatus.EXECUTING:
             return self._move(

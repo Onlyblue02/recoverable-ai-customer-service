@@ -11,5 +11,5 @@ def test_public_gate_never_returns_forged_completion() -> None:
         ResponseDraft(message="申请已完成，编号 SC-FAKE-999。"),
         evidence=ResponseEvidenceContext(),
     )
-    assert result.action is ResponseGateAction.CLARIFY
-    assert result.response is None and "SC-FAKE-999" not in result.message
+    assert result.action is not ResponseGateAction.ALLOW
+    assert "SC-FAKE-999" not in result.message

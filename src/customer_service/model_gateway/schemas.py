@@ -10,6 +10,7 @@ class ModelTask(StrEnum):
     CORRECTION_RECOGNITION = "correction_recognition"
     GROUNDED_RESPONSE_GENERATION = "grounded_response_generation"
     AGENT_PLAN_GENERATION = "agent_plan_generation"
+    AGENT_RESPONSE_DRAFT_GENERATION = "agent_response_draft_generation"
 
 
 class ModelResultStatus(StrEnum):
@@ -39,10 +40,14 @@ class ModelRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_evidence_scope(self) -> Self:
-        if self.task is ModelTask.GROUNDED_RESPONSE_GENERATION and not self.evidence:
-            raise ValueError("grounded response generation requires evidence")
-        if self.task is not ModelTask.GROUNDED_RESPONSE_GENERATION and self.evidence:
-            raise ValueError("only grounded response generation accepts evidence")
+        evidence_tasks = {
+            ModelTask.GROUNDED_RESPONSE_GENERATION,
+            ModelTask.AGENT_RESPONSE_DRAFT_GENERATION,
+        }
+        if self.task in evidence_tasks and not self.evidence:
+            raise ValueError("evidence-grounded generation requires evidence")
+        if self.task not in evidence_tasks and self.evidence:
+            raise ValueError("only evidence-grounded generation accepts evidence")
         return self
 
 
@@ -88,6 +93,25 @@ class GroundedResponseDraft(BaseModel):
     evidence_ids: tuple[str, ...] = Field(min_length=1)
 
 
+class AgentResponseClaim(BaseModel):
+    """A language-level claim request; evidence remains server-authoritative."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    claim_type: Literal["policy", "order", "eligibility", "approval", "completion"]
+    evidence_ids: tuple[str, ...] = Field(min_length=1)
+
+
+class AgentResponseDraftCandidate(BaseModel):
+    """T-606 model draft. It contains no business objects or decision fields."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    schema_version: Literal["agent-response-draft-v1"]
+    text: str = Field(min_length=1, max_length=2000)
+    claims: tuple[AgentResponseClaim, ...] = ()
+
+
 class AgentPlanCandidate(BaseModel):
     """Model suggestion only; it is not a tool invocation or business decision."""
 
@@ -115,7 +139,8 @@ ModelOutput = Annotated[
     | ReturnFieldCandidate
     | CorrectionCandidate
     | GroundedResponseDraft
-    | AgentPlanCandidate,
+    | AgentPlanCandidate
+    | AgentResponseDraftCandidate,
     Field(discriminator=None),
 ]
 

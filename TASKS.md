@@ -975,6 +975,8 @@ T-501～T-507 已被既有规划占用，不得修改、复用或为缺少详细
 - Response Gate 不修改业务事实；模型草稿不通过时只能安全改写、澄清、升级或失败。
 - Prompt 注入、伪造引用和隐藏推理泄露不能进入公开回复。
 
+**完成状态**：2026-08-10 Reviewer 最终审查 `PASS`；允许创建 T-606 普通任务提交并进入 T-607。已实现版本化 `agent-response-draft-v1`、DeepSeek/Fake 证据约束草稿、受控 EvidenceRecord 到类型化 ResponseEvidenceContext 的解析，以及 DRAFTING→GATING→完成/澄清/升级/安全失败状态闭环。模型只能引用本轮 evidence ID，不能提交业务对象；未知、伪造、跨绑定、过期、失效和快照漂移证据在模型调用前拒绝。Gate 继续最终裁决政策、订单、资格、审批与申请声明，并采用结构化事实默认拒绝：无声明自由文本不能放行，有声明文本也必须等于服务端从可信对象确定性渲染的事实片段。Reviewer 审查前相关专项及回归 221 passed、全仓 365 passed 且 1 skipped；Release Manager 收尾复测相关专项与回归 242 项、文档 15 项、全仓 365 项通过且 1 项跳过，Ruff format（133 个文件）/check、mypy（132 个源文件）和 `git diff --check` 通过。未开始 T-607，未改变版本、创建 Tag、推送或发布。
+
 ### T-607 固定验收与安全对抗集
 
 **目标**

@@ -181,6 +181,9 @@ class HighRiskReturnWorkflowService:
                 claims_eligibility=True,
                 claims_completion=True,
             )
+            rendered = self._gate.render_grounded(draft)
+            assert rendered is not None
+            draft = draft.model_copy(update={"message": rendered})
             gated = self._gate.evaluate(
                 draft,
                 evidence=ResponseEvidenceContext(
