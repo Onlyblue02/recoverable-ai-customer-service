@@ -1014,7 +1014,81 @@ T-501～T-507 已被既有规划占用，不得修改、复用或为缺少详细
 
 **完成状态**：2026-08-11 Reviewer 最终审查 `PASS`；允许创建 T-607 普通任务提交。已新增版本化 Agent MVP 固定验收矩阵、可机读的验收项—case—业务安全结果合同、确定性 Fake 运行器、六阶段失败定位、报告 Schema、独立 DeepSeek 补充格式和真实失败保留校验。Reviewer 首轮指出的 DeepSeek 草稿错误判定和攻击路径缺口已修复：`agent-response-draft-v1` 按 Schema、声明类型、当前证据 ID 子集及禁止业务对象字段判定；逐例记录 Prompt、模型、配置、数据集、耗时、网络状态和失败原因。固定集 31 项显式覆盖越权订单、伪造审批 ID、真实恢复入口的缺失 checkpoint、跨绑定 checkpoint、非可信恢复事件、批准前零写入、批准后幂等恢复、调整/拒绝零写入、模型超时/限流/Schema 漂移、工具超时/绑定漂移/未知写入状态。Reviewer 修复后相关专项 212 passed、全仓 380 passed 且 1 skipped；Release Manager 收尾再次连续运行两次固定集均 31/31 且稳定投影一致，相关专项与回归 126 项、文档 15 项、全仓 380 项通过且 1 项跳过，Ruff format（139 个文件）/check、mypy（138 个源文件）和 `git diff --check` 通过。DeepSeek 供应商不可用仍记为 `BLOCKED`、`passed=false`，不影响 Fake 门禁。未定义或实现 T-701～T-706，未改变版本、创建 Tag、推送或发布。
 
-**阶段七出口状态**：2026-08-11 Reviewer 阶段出口审查 `PASS`；T-601～T-607 构成当前完整 Agent MVP。进程内 `AgentWorkflowService` 是 T-602～T-606 的单一受控组合入口：公开请求只含消息，可信上下文只含服务端会话、身份和已确认字段；入口内部持有计划校验器、一次性 permit、受控 continuation、EvidenceRecord 和 Gate 调用，不接受调用方或模型提供身份覆盖、工具步骤、permit、资格、审批决定、证据、workflow ID 或 Gate 结果。DeepSeek 只负责理解、受限结构化计划和基于本轮可信证据的回复草稿；状态机、静态工具与计划校验、确定性订单权限/资格规则、人工审批及 Response Gate 保留最终裁决权。标准低风险路径只写入一次并经 Gate 返回；高风险路径在人工审批前保持等待且零写入，批准仅恢复一次，调整进入 CLARIFYING 且零写入，拒绝只返回 Gate 放行的可信拒绝事实且零写入。固定验收集 `1.2.0` 连续两次 38/38 且稳定投影一致，阶段专项 135 项、全仓 389 passed/1 skipped、文档 15 项通过，Ruff format/check、mypy 和 `git diff --check` 通过。2026-08-11 Docker Compose 构建、启动、健康、连通与清理闭环也已实际通过；当前本地候选版本为 `v1.0.0-rc.2`。T-701～T-706 未实现且未获生产化授权；本结论不等于正式版本发布。
+**阶段七出口状态**：2026-08-11 Reviewer 阶段出口审查 `PASS`；T-601～T-607 构成当前完整 Agent MVP。进程内 `AgentWorkflowService` 是 T-602～T-606 的单一受控组合入口：公开请求只含消息，可信上下文只含服务端会话、身份和已确认字段；入口内部持有计划校验器、一次性 permit、受控 continuation、EvidenceRecord 和 Gate 调用，不接受调用方或模型提供身份覆盖、工具步骤、permit、资格、审批决定、证据、workflow ID 或 Gate 结果。DeepSeek 只负责理解、受限结构化计划和基于本轮可信证据的回复草稿；状态机、静态工具与计划校验、确定性订单权限/资格规则、人工审批及 Response Gate 保留最终裁决权。标准低风险路径只写入一次并经 Gate 返回；高风险路径在人工审批前保持等待且零写入，批准仅恢复一次，调整进入 CLARIFYING 且零写入，拒绝只返回 Gate 放行的可信拒绝事实且零写入。固定验收集 `1.2.0` 连续两次 38/38 且稳定投影一致，阶段专项 135 项、全仓 389 passed/1 skipped、文档 15 项通过，Ruff format/check、mypy 和 `git diff --check` 通过。2026-08-11 Docker Compose 构建、启动、健康、连通与清理闭环也已实际通过；工程版本已准备为 `1.0.0rc2`。本地 `v1.0.0-rc.2` Tag 已存在但指向 T-608 之前的旧基线，不能证明当前待审实现，候选发布暂停。T-701～T-706 未实现且未获生产化授权；本结论不等于正式版本发布。
+
+### T-608 Agent HTTP API 与消费者页面接入
+
+**完成状态**：2026-08-11 Reviewer 最终审查 `PASS`；T-608 已完成，允许创建普通任务提交。当前不修改项目版本、不创建 Tag、不推送或发布。
+
+- Release Manager 收尾复测：T-608 HTTP/API、审批、DeepSeek 错误注入、Agent workflow、工具和回复草稿相关专项 57 passed；全仓 Python 398 passed、1 skipped；文档 21 passed；Ruff format（153 个文件）/check、mypy（152 个源文件）、前端 Prettier/ESLint/Vitest（17 passed）和生产构建、`git diff --check` 均通过。保留 1 条既有 Starlette TestClient 弃用警告；本轮未运行真实模型，采用已获 Reviewer 审查的同一工作区 digest 4/4 脱敏记录作为真实模型证据。
+
+**设计状态**
+
+- 2026-08-11：Reviewer 首轮 `CONDITIONAL PASS`；补充 HTTP 幂等合同、确定性 confirmed 字段签发、应用级唯一依赖图/审批恢复绑定和写后失败公开投影后，独立复审为 `PASS`（仅限设计），允许开始 T-608 实现。
+- 历史受限和可联网重跑为 `BLOCKED 0/4` 与 `BLOCKED 3/4`，均不计通过并保留为历史事实。最终 Reviewer 送审在同一工作区 digest `ca171d5b816c25b515b2bc3fa940ece10aee94f35e5105961ce7a0ec03fa29f9` 下，以 `deepseek-v4-flash`、配置版本 `1`、数据集版本 `1.0.0` 于 `2026-08-11T10:35:36.103982+00:00` 经公开 HTTP 路径得到 4/4 `PASSED`；Reviewer 据此给出最终 `PASS`。报告不含 Key、推理链或敏感内部数据。
+
+**目标**
+
+将已完成的进程内 `AgentWorkflowService` 接入现有消费者 HTTP API 与页面，使用户默认使用 Fake/合成 Agent，并在服务端配置 DeepSeek API Key 后可明确选择和实际使用 DeepSeek Agent，同时保持全部确定性安全裁决边界。
+
+**输入**
+
+- T-601～T-607 已通过 Reviewer 的 Agent 状态机、计划、工具、证据、审批恢复和 Response Gate 能力。
+- 现有 `/api/v1/conversations` 会话 API、消费者 React 页面与人工审批 API。
+- T-204 DeepSeek/Fake ModelGateway 配置和安全失败合同。
+- `docs/superpowers/specs/2026-08-11-t608-agent-http-ui-design.md`。
+
+**输出**
+
+- Fake/DeepSeek 模式能力查询与会话创建合同。
+- 会话模式固定、服务端 ModelGateway 选择和 `AgentWorkflowService.handle()/resume()` 接入。
+- 只公开安全状态、Gate 放行回复与引用的 HTTP DTO 投影。
+- 消费者模式选择、模式徽标、模型状态与可行动失败提示。
+- Fake、供应商错误注入、API/前端集成、安全回归和真实 DeepSeek HTTP 链路评测报告。
+
+**依赖**
+
+- T-601～T-607 与阶段七出口 Reviewer PASS。
+- 复用现有消费者和审批 API，不修改其可信身份与人工决定边界。
+- T-608 Reviewer 设计审查已通过；实现仍须遵守本任务全部接口、安全与测试合同。
+
+**接口契约**
+
+- `GET /api/v1/agent-modes` 仅返回 `fake/deepseek` 的配置与可选择状态，不返回 Key、Base URL、Prompt 或供应商细节。
+- `POST /api/v1/conversations` 接受可选 `mode: fake | deepseek`；省略时默认 `fake`，额外字段拒绝。
+- DeepSeek 未配置时创建返回 `409 AGENT_MODE_NOT_CONFIGURED`，不创建会话或调用网络。
+- `POST /api/v1/conversations/{id}/messages` 仍只接受 `message`；模式、身份、turn、permit、工具、证据和 workflow 均由服务端提供。
+- 消息 POST 必须携带版本化 `http-idempotency-v1` 的 `Idempotency-Key`：UUID v4，绑定可信 user/conversation/mode/path/message digest/turn，并原子记录 `PROCESSING | COMPLETED | FAILED_SAFE`；同绑定重放复用公开结果，冲突返回 409，写后失败或未知状态不得重放写操作。进程内 TTL/重启限制必须公开说明，key 不得承载或暴露 permit、workflow 或 evidence。
+- 每轮先由现有确定性 `ReturnInformationCollectionService` 或等价已审计适配器签发和修订 confirmed order/reason/condition；模型只可提供候选，不能直接写入 `TrustedAgentContext`。字段不全时退货写操作保持 clarify/零写入，政策与授权订单只读路径按自身前置条件运行。
+- 唯一应用 composition root 必须让 conversations/approvals router、AgentWorkflowFactory、AgentConversationService、ApprovalTaskService、checkpoint/service-case repository、HighRiskReturnWorkflowService、AgentWorkflowService 与 AgentSessionRegistry 复用同一依赖实例。审批决定按可信 conversation/turn/user/mode 绑定调用唯一 `resume()`；GET 永不恢复，绑定丢失、漂移或重启统一安全失败。
+- 公开响应包含模式、Agent 状态、模型状态、公开原因码、行动提示和 Gate 放行内容；禁止公开 API Key、推理链、内部 permit、工具原始参数、EvidenceRecord、内部 Gate 原因或敏感审计。
+- 会话模式不可变；切换模式必须创建新会话，不允许静默 DeepSeek→Fake fallback。
+
+**验收标准**
+
+- 默认 Fake 保持向后兼容，并通过 HTTP 实际调用 Fake AgentWorkflowService，不再走旧确定性会话编排。
+- 配置 Key 后，DeepSeek 模式通过同一 HTTP 契约实际调用 DeepSeek AgentWorkflowService。
+- 未配置、供应商不可用、超时、限流和结构化输出失败均进入明确安全状态，不伪装为模型成功，不执行未经验证计划。
+- 前端默认标识“合成演示”，DeepSeek 成功仅在 `model_status=succeeded` 且 Gate 形成公开回复时展示。
+- 页面、浏览器存储、HTTP 请求和响应均不含 Key、推理链、Prompt、permit、工具原始参数、内部证据或敏感审计。
+- 状态机、计划校验、工具白名单、订单授权、资格规则、人工审批、幂等和 Response Gate 回归保持通过。
+- 消费者 GET 无业务副作用；人工决定后只能由服务端可信绑定调用 `resume()`，重复恢复不创建第二条申请。
+- 同一幂等 key 的并发/串行重试、同 key 不同 body、跨 conversation/user/mode、pending approval、写后草稿/Gate/网络失败及未知写入状态均有固定验证；最多一条申请且 GET 零副作用。
+- 多轮字段收集、否定/更正历史、模型候选冲突、伪造 confirmed 字段与信息不全零写入通过；演示身份继续由服务端固定 `_DEMO_USER_ID`，不得声称生产认证。
+- 高风险会话与审批工作台在同一依赖图完成 list→approve/adjust/reject→同会话查询；跨绑定伪造、重复决定、不同 Factory 实例和状态丢失均安全失败，批准后唯一申请，调整/拒绝零申请。
+- 写已确认成功但草稿/Gate/网络失败时公开 `RESPONSE_UNAVAILABLE_AFTER_COMMIT`，写入未知时公开 `WRITE_OUTCOME_UNKNOWN`；重试和 GET 均不得重放写操作或泄露未经 Gate 校验事实。
+- Fake、错误注入、API 和前端自动化测试全部通过，T-607 固定集无退化。
+- 真实 DeepSeek 评测必须经 HTTP API 覆盖政策、低风险退货、高风险审批恢复和安全对抗代表路径；缺少 Key 为 `SKIPPED`，供应商/网络/限流失败为 `BLOCKED`，均不得记为通过。
+- 在真实 DeepSeek 代表路径全部实际通过前，T-608 不得最终 PASS，不得宣称页面可实际使用 DeepSeek，也不得恢复 rc.2 候选发布。
+- 不定义或实现 T-701～T-706，不修改版本号、Release、提交或 Tag。
+
+**测试与评测**
+
+- 单元：模式与默认值、模式不可变、配置脱敏、公开 DTO 白名单、错误状态映射、幂等绑定/冲突/状态投影、确定性 confirmed 字段签发及唯一依赖图保护。
+- API/组件：Fake/DeepSeek 路由、模型五类失败、高低风险流程、同 key 并发与写后失败重试、字段修订、同一审批工作台恢复、绑定漂移安全失败、GET 无副作用和敏感字段拒绝。
+- 前端：模式选择/禁用、模式徽标、五类失败提示、新会话切换和浏览器数据边界。
+- 回归：T-607 固定集、Agent 内核、订单、资格、审批、恢复、Response Gate 及现有消费者 Fake 演示。
+- 真实模型：只使用合成数据，经 HTTP 链路运行并记录模型/Prompt/配置/数据集、网络、耗时、公开结果、失败和脱敏审计关联。
 
 ## 11. 后续生产化编号预留
 
@@ -1030,7 +1104,7 @@ T-000 → T-001 → T-002
 → T-401 → T-402 → T-403 → T-404
 
 Agent MVP：
-T-601 → T-602 → T-603 → T-604 → T-605 → T-606 → T-607
+T-601 → T-602 → T-603 → T-604 → T-605 → T-606 → T-607 → T-608
 ```
 
 ## 13. 第一版本发布检查

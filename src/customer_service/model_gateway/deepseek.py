@@ -72,6 +72,25 @@ class DeepSeekModelGateway:
         )
         if repair:
             system += "上一输出无效。仅修复为上述合法 json 结构。"
+        if request.task is ModelTask.AGENT_RESPONSE_DRAFT_GENERATION:
+            system += (
+                "回复草稿必须完整声明本轮证据支持的用户可见事实："
+                "policy.lookup 对应 policy，order.get_authorized 对应 order，"
+                "return.evaluate 对应 eligibility，approval.get_status 或 high_risk.resume "
+                "对应 approval，service_case.create 或包含 service_case_id 的 high_risk.resume "
+                "对应 completion。每个声明只能引用提供的 evidence_id；"
+                "不得遗漏已有的 completion 或 approval 事实，也不得自行添加事实。"
+                "text 必须按声明顺序只拼接以下固定句子，不得改写或添加连接词："
+                "policy：已找到与本次问题相关的当前政策证据。；"
+                "order：订单 {order_id} 当前状态为 delivered。；"
+                "eligibility 按 eligibility_code 使用：eligible=该商品符合当前退货资格要求。；"
+                "ineligible=该商品不符合当前退货资格要求。；"
+                "requires_approval=该退货申请需要人工审批。；"
+                "needs_information=当前信息不足以确认退货资格。；"
+                "verification_required=当前退货资格需要进一步核验。；"
+                "包含 service_case_id 的 high_risk.resume：人工审批已批准。；"
+                "completion：售后申请已创建，编号为 {service_case_id}。"
+            )
         payload = {
             "model": self._settings.deepseek_model,
             "temperature": 0,
@@ -155,11 +174,38 @@ class DeepSeekModelGateway:
                 referenced = {
                     evidence_id for claim in output.claims for evidence_id in claim.evidence_ids
                 }
-                if not referenced.issubset(trusted_ids):
+                if not referenced.issubset(
+                    trusted_ids
+                ) or not DeepSeekModelGateway._covers_evidence(request, output):
                     return None
             return output
         except (json.JSONDecodeError, ValidationError, TypeError):
             return None
+
+    @staticmethod
+    def _covers_evidence(request: ModelRequest, output: AgentResponseDraftCandidate) -> bool:
+        required: set[str] = set()
+        for evidence in request.evidence:
+            try:
+                document = json.loads(evidence.text)
+                tool_id = document["tool_id"]
+                fields = {item["name"] for item in document.get("public_fields", [])}
+            except (json.JSONDecodeError, KeyError, TypeError):
+                continue
+            if tool_id == "policy.lookup":
+                required.add("policy")
+            elif tool_id == "order.get_authorized":
+                required.add("order")
+            elif tool_id == "return.evaluate":
+                required.add("eligibility")
+            elif tool_id in {"approval.get_status", "high_risk.resume"}:
+                required.add("approval")
+            if tool_id == "service_case.create" or (
+                tool_id == "high_risk.resume" and "service_case_id" in fields
+            ):
+                required.add("completion")
+        declared = {claim.claim_type for claim in output.claims}
+        return required.issubset(declared)
 
     @staticmethod
     def _parse_for_task(task: ModelTask, payload: Mapping[str, Any]) -> ModelOutput:

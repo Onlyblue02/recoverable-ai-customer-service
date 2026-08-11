@@ -8,7 +8,7 @@ import hashlib
 import hmac
 import secrets
 from collections.abc import Callable
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -380,7 +380,7 @@ class ControlledToolExecutor:
                 item_condition=values["item_condition"],
                 issue_code="reported" if reason is ReturnReason.QUALITY_ISSUE else None,
                 policies=trusted,
-                as_of=date.today(),
+                as_of=self._catalog.reference_date,
             )
         )
         applicable_citations = tuple(

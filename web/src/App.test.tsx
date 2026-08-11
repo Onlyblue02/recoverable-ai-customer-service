@@ -6,7 +6,11 @@ import { App } from "./App"
 import { ConversationClient, ConversationSnapshot } from "./conversation"
 
 const collecting: ConversationSnapshot = {
-  status: "collecting_information",
+  status: "clarify",
+  requestedMode: "fake",
+  effectiveMode: "fake",
+  modelStatus: "not_used",
+  reasonCode: "PLAN_CLARIFICATION_REQUIRED",
   actionHint: "请提供订单号。",
   messages: [],
 }
@@ -67,7 +71,7 @@ describe("App", () => {
       target: { value: "退货" },
     })
     fireEvent.click(screen.getByRole("button", { name: "发送" }))
-    expect(await screen.findByText("需要协助")).toBeVisible()
+    expect(await screen.findByText("安全停止")).toBeVisible()
     expect(screen.queryByText("host=db")).not.toBeInTheDocument()
   })
 

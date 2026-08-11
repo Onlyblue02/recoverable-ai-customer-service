@@ -385,6 +385,17 @@ class ControlledAgentExecutor:
             AgentReasonCode.TOOL_RESULT_ACCEPTED,
         )
 
+    def start_controlled_execution(self, state: AgentState) -> AgentState:
+        """Audit entry into execution after T-604 validation for a terminal read tool."""
+        if state.status is not AgentStatus.VALIDATING_PLAN:
+            return self._illegal(state, AgentEventType.TOOL_RESULT)
+        return self._move(
+            state,
+            AgentEventType.TOOL_RESULT,
+            AgentStatus.EXECUTING,
+            AgentReasonCode.TOOL_RESULT_ACCEPTED,
+        )
+
     def fail_controlled_execution(self, state: AgentState) -> AgentState:
         """Record a workflow/tool failure without allowing callers to choose a status."""
         return self._failed(state, AgentEventType.TOOL_RESULT, AgentReasonCode.EXECUTION_FAILED)

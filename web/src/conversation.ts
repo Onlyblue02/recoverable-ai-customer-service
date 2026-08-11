@@ -1,52 +1,64 @@
+export type AgentMode = "fake" | "deepseek"
 export type ConversationStatus =
-  "collecting_information" | "waiting_approval" | "completed" | "error"
+  | "collecting_information"
+  | "clarify"
+  | "waiting_approval"
+  | "completed"
+  | "escalate"
+  | "failed_safe"
 
-export type Citation = {
-  policyId: string
-  title: string
-  source: string
-}
-
-export type OrderSummary = {
-  orderId: string
-  status: string
-  totalAmount: string
-  currency: string
-}
-
+export type Citation = { policyId: string; title: string; source: string }
 export type Message = {
   id: string
   role: "user" | "assistant"
   content: string
   citations?: Citation[]
 }
-
+export type ModeOption = {
+  id: AgentMode
+  configured: boolean
+  selectable: boolean
+  reasonCode?: string
+}
 export type ConversationSnapshot = {
   status: ConversationStatus
+  requestedMode: AgentMode
+  effectiveMode: AgentMode
+  modelStatus: string
+  reasonCode: string
   messages: Message[]
   actionHint: string
-  order?: OrderSummary
   serviceCaseId?: string
+  order?: {
+    orderId: string
+    status: string
+    totalAmount: string
+    currency: string
+  }
 }
-
 export interface ConversationClient {
-  load(): Promise<ConversationSnapshot>
+  load(mode?: AgentMode): Promise<ConversationSnapshot>
   send(message: string): Promise<ConversationSnapshot>
+  modes?(): Promise<ModeOption[]>
+  start?(mode: AgentMode): Promise<ConversationSnapshot>
 }
 
 type ServerResponse = {
   conversation_id: string
-  status: string
-  message: string
+  requested_mode?: AgentMode
+  effective_mode?: AgentMode
+  agent_status?: ConversationStatus
+  model_status?: string
+  reason_code?: string
+  status?: string
   action_hint: string
-  citations: Array<{ policy_id: string; title: string; source: string }>
-  order: {
+  service_case_id: string | null
+  order?: {
     order_id: string
     status: string
     total_amount: string
     currency: string
   } | null
-  service_case_id: string | null
   messages: Array<{
     id: string
     role: "user" | "assistant"
@@ -54,21 +66,16 @@ type ServerResponse = {
     citations: Array<{ policy_id: string; title: string; source: string }>
   }>
 }
-
 type Fetcher = typeof fetch
-
 export type ConversationStorage = Pick<
   Storage,
   "getItem" | "setItem" | "removeItem"
 >
-
 const sessionKey = "racs-consumer-conversation-id"
 
 export class HttpConversationClient implements ConversationClient {
   private conversationId?: string
   private snapshot?: ConversationSnapshot
-  private loading?: Promise<ConversationSnapshot>
-
   constructor(
     private readonly baseUrl = "/api/v1/conversations",
     private readonly fetcher: Fetcher = globalThis.fetch.bind(globalThis),
@@ -76,27 +83,43 @@ export class HttpConversationClient implements ConversationClient {
       ConversationStorage | undefined = browserStorage(),
   ) {}
 
-  async load(): Promise<ConversationSnapshot> {
-    if (this.snapshot) return this.snapshot
-    if (this.loading) return this.loading
-    this.loading = this.loadSession()
-    try {
-      return await this.loading
-    } finally {
-      this.loading = undefined
+  async modes(): Promise<ModeOption[]> {
+    const response = await this.fetcher("/api/v1/agent/modes")
+    if (!response.ok) throw new Error("agent modes unavailable")
+    const body = (await response.json()) as {
+      modes: Array<{
+        id: AgentMode
+        configured: boolean
+        selectable: boolean
+        reason_code?: string
+      }>
     }
+    return body.modes.map((item) => ({
+      id: item.id,
+      configured: item.configured,
+      selectable: item.selectable,
+      reasonCode: item.reason_code,
+    }))
   }
 
-  private async loadSession(): Promise<ConversationSnapshot> {
-    const rememberedId = this.conversationId ?? this.readRememberedId()
-    if (rememberedId) {
-      const response = await this.fetcher(`${this.baseUrl}/${rememberedId}`)
+  async load(mode: AgentMode = "fake"): Promise<ConversationSnapshot> {
+    if (this.snapshot) return this.snapshot
+    const remembered = this.conversationId ?? this.readRememberedId()
+    if (remembered) {
+      const response = await this.fetcher(`${this.baseUrl}/${remembered}`)
       if (response.ok) return this.apply(await this.json(response))
-      if (response.status !== 404) throw new Error("conversation unavailable")
       this.forgetRememberedId()
-      this.conversationId = undefined
     }
-    const response = await this.fetcher(this.baseUrl, { method: "POST" })
+    return this.start(mode)
+  }
+
+  async start(mode: AgentMode): Promise<ConversationSnapshot> {
+    const response = await this.fetcher(this.baseUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mode }),
+    })
+    this.snapshot = undefined
     return this.apply(await this.json(response))
   }
 
@@ -106,7 +129,10 @@ export class HttpConversationClient implements ConversationClient {
       `${this.baseUrl}/${this.conversationId}/messages`,
       {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          "Idempotency-Key": crypto.randomUUID(),
+        },
         body: JSON.stringify({ message }),
       },
     )
@@ -117,12 +143,19 @@ export class HttpConversationClient implements ConversationClient {
     if (!response.ok) throw new Error("conversation unavailable")
     return (await response.json()) as ServerResponse
   }
-
   private apply(result: ServerResponse): ConversationSnapshot {
     this.conversationId = result.conversation_id
-    this.rememberId(this.conversationId)
+    try {
+      this.storage?.setItem(sessionKey, result.conversation_id)
+    } catch {
+      /* optional */
+    }
     this.snapshot = {
-      status: statusFrom(result.status),
+      status: result.agent_status ?? legacyStatus(result.status),
+      requestedMode: result.requested_mode ?? "fake",
+      effectiveMode: result.effective_mode ?? "fake",
+      modelStatus: result.model_status ?? "not_used",
+      reasonCode: result.reason_code ?? "LEGACY_RESPONSE",
       actionHint: result.action_hint,
       serviceCaseId: result.service_case_id ?? undefined,
       order: result.order
@@ -146,28 +179,18 @@ export class HttpConversationClient implements ConversationClient {
     }
     return this.snapshot
   }
-
-  private readRememberedId(): string | undefined {
+  private readRememberedId() {
     try {
       return this.storage?.getItem(sessionKey) ?? undefined
     } catch {
       return undefined
     }
   }
-
-  private rememberId(conversationId: string): void {
-    try {
-      this.storage?.setItem(sessionKey, conversationId)
-    } catch {
-      // Session persistence is optional; the active in-memory session remains usable.
-    }
-  }
-
-  private forgetRememberedId(): void {
+  private forgetRememberedId() {
     try {
       this.storage?.removeItem(sessionKey)
     } catch {
-      // An unavailable browser store must not block creation of a fresh session.
+      /* optional storage */
     }
   }
 }
@@ -181,9 +204,8 @@ function browserStorage(): ConversationStorage | undefined {
   }
 }
 
-function statusFrom(status: string): ConversationStatus {
+function legacyStatus(status?: string): ConversationStatus {
   if (status === "completed") return "completed"
   if (status === "requires_approval") return "waiting_approval"
-  if (status === "collecting_information") return "collecting_information"
-  return "error"
+  return "collecting_information"
 }

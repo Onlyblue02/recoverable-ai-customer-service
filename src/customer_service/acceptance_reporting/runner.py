@@ -11,7 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
@@ -22,7 +22,6 @@ from customer_service.approvals.schemas import (
     ApprovalDecisionRequest,
 )
 from customer_service.approvals.service import ApprovalTaskService
-from customer_service.interfaces.api.routes.approvals import console
 from customer_service.main import create_app
 from customer_service.recovery.repository import InMemoryRecoveryCheckpointRepository
 from customer_service.recovery.schemas import RecoveryAccessContext, RecoveryCheckpointRequest
@@ -82,7 +81,6 @@ class AcceptanceResult:
 def run_fixed_acceptance() -> dict[str, Any]:
     """Run representative T-002 cases through the public consumer/approval paths."""
 
-    console.reset_for_test()
     client = TestClient(create_app())
     identity = _code_identity()
     run_id = str(uuid4())
@@ -161,9 +159,9 @@ def _execute(
 def _policy_case(client: TestClient) -> AcceptanceResult:
     body = _send(client, "我想了解退货政策")
     citation_ids = [citation["policy_id"] for citation in body["citations"]]
-    actual = {"status": body["status"], "citation_ids": citation_ids}
+    actual = {"status": body["agent_status"], "citation_ids": citation_ids}
     expected = {
-        "status": "collecting_information",
+        "status": "completed",
         "citation_ids": ["POL-ACTIVE-STANDARD-001"],
     }
     return _result("AC-FR03-N-001", "policy", expected, actual)
@@ -171,15 +169,13 @@ def _policy_case(client: TestClient) -> AcceptanceResult:
 
 def _authorized_order_case(client: TestClient) -> AcceptanceResult:
     body = _send(client, "查询订单 ORD-NORMAL-001")
-    actual = {"status": body["status"], "order": body["order"]}
+    actual = {
+        "status": body["agent_status"],
+        "authorized_order_visible": "ORD-NORMAL-001" in body["message"],
+    }
     expected = {
-        "status": "collecting_information",
-        "order": {
-            "order_id": "ORD-NORMAL-001",
-            "status": "delivered",
-            "total_amount": "129.00",
-            "currency": "CNY",
-        },
+        "status": "completed",
+        "authorized_order_visible": True,
     }
     return _result("AC-FR04-N-001", "order", expected, actual)
 
@@ -188,14 +184,14 @@ def _unavailable_order_case(client: TestClient) -> AcceptanceResult:
     missing = _send(client, "查询订单 ORD-NOT-FOUND-001")
     unauthorized = _send(client, "查询订单 ORD-OTHER-USER-001")
     actual = {
-        "missing_status": missing["status"],
-        "unauthorized_status": unauthorized["status"],
+        "missing_status": missing["agent_status"],
+        "unauthorized_status": unauthorized["agent_status"],
         "same_message": missing["message"] == unauthorized["message"],
-        "orders_absent": missing["order"] is None and unauthorized["order"] is None,
+        "orders_absent": "ORD-" not in missing["message"] and "ORD-" not in unauthorized["message"],
     }
     expected = {
-        "missing_status": "order_unavailable",
-        "unauthorized_status": "order_unavailable",
+        "missing_status": "failed_safe",
+        "unauthorized_status": "failed_safe",
         "same_message": True,
         "orders_absent": True,
     }
@@ -209,7 +205,7 @@ def _standard_return_case(client: TestClient) -> AcceptanceResult:
     completed = _post(client, conversation_id, "商品未使用，包装完整")
     repeated = _post(client, conversation_id, "商品未使用，包装完整")
     actual = {
-        "status": completed["status"],
+        "status": completed["agent_status"],
         "has_service_case": completed["service_case_id"] is not None,
         "same_service_case_on_repeat": completed["service_case_id"] == repeated["service_case_id"],
         "citation_ids": [citation["policy_id"] for citation in completed["citations"]],
@@ -235,13 +231,13 @@ def _high_risk_return_case(client: TestClient) -> AcceptanceResult:
     )
     restored = client.get(f"/api/v1/conversations/{conversation_id}").json()
     actual = {
-        "waiting_status": waiting["status"],
+        "waiting_status": waiting["agent_status"],
         "approval_status": decision.json().get("status") if decision.status_code == 200 else None,
-        "restored_status": restored["status"],
+        "restored_status": restored["agent_status"],
         "has_service_case": restored["service_case_id"] is not None,
     }
     expected = {
-        "waiting_status": "requires_approval",
+        "waiting_status": "waiting_approval",
         "approval_status": "approved",
         "restored_status": "completed",
         "has_service_case": True,
@@ -336,9 +332,10 @@ def _recover_after_checkpoint_import(
     workflow_id = f"T403-{conversation_id}"
     cases = InMemoryServiceCaseRepository()
     checkpoint_repository = InMemoryRecoveryCheckpointRepository()
+    repository = cast(Any, client.app).state.agent_application.approval_repository
     source = ApprovalRecoveryService(
         checkpoint_repository,
-        approvals=console.repository,
+        approvals=repository,
         service_cases=ServiceCaseService(cases),
     )
     checkpoint = source.checkpoint(
@@ -346,7 +343,7 @@ def _recover_after_checkpoint_import(
         context=RecoveryAccessContext(current_user_id="USR-DEMO-001"),
     )
     exported = checkpoint_repository.export()
-    ApprovalTaskService(console.repository).decide(
+    ApprovalTaskService(repository).decide(
         task_summary["approval_id"],
         ApprovalDecisionRequest(
             decision=ApprovalDecision.APPROVE,
@@ -357,7 +354,7 @@ def _recover_after_checkpoint_import(
     )
     restored = ApprovalRecoveryService(
         InMemoryRecoveryCheckpointRepository(exported),
-        approvals=console.repository,
+        approvals=repository,
         service_cases=ServiceCaseService(cases),
     ).recover(workflow_id, context=RecoveryAccessContext(current_user_id="USR-DEMO-001"))
     if checkpoint.approval is None or restored.approval is None or restored.service_case is None:
@@ -384,7 +381,9 @@ def _new_conversation(client: TestClient) -> str:
 
 def _post(client: TestClient, conversation_id: str, message: str) -> dict[str, Any]:
     response = client.post(
-        f"/api/v1/conversations/{conversation_id}/messages", json={"message": message}
+        f"/api/v1/conversations/{conversation_id}/messages",
+        json={"message": message},
+        headers={"Idempotency-Key": str(uuid4())},
     )
     if response.status_code != 200:
         raise RuntimeError("conversation message failed")

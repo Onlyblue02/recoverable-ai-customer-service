@@ -101,6 +101,7 @@ class AgentWorkflowResult(BaseModel):
     outcome: AgentWorkflowOutcome
     public_response: str | None = None
     evidence_ids: tuple[str, ...] = ()
+    policy_ids: tuple[str, ...] = ()
     approval_id: str | None = None
     gate_action: ResponseGateAction | None = None
     gate_reasons: tuple[str, ...] = ()
@@ -274,7 +275,8 @@ class AgentWorkflowService:
             return self._execution_failed(validated.state, executed.code)
         evidence = self._append_evidence((), executed)
         if not executed.continuations:
-            return self._draft_and_gate(key, validated.state, request.message, evidence)
+            executing = self.__executor.start_controlled_execution(validated.state)
+            return self._draft_and_gate(key, executing, request.message, evidence)
         continuation_state = executed.continuation_state
         if continuation_state is None:
             return self._execution_failed(validated.state, "CONTINUATION_STATE_MISSING")
@@ -414,6 +416,14 @@ class AgentWorkflowService:
             outcome=AgentWorkflowOutcome(response.outcome.value),
             public_response=response.public_response,
             evidence_ids=tuple(record.evidence_id for record in evidence),
+            policy_ids=tuple(
+                dict.fromkeys(
+                    field.value
+                    for record in evidence
+                    for field in record.public_fields
+                    if field.name == "policy_id"
+                )
+            ),
             gate_action=None if response.gate is None else response.gate.action,
             gate_reasons=(
                 ()

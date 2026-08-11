@@ -2,7 +2,7 @@
 
 ## 1. 唯一项目版本号
 
-`pyproject.toml` 的 `[project].version` 是 RACS 唯一项目版本号来源。当前候选版本为 PEP 440 格式的 `1.0.0rc2`，对应 Git Tag `v1.0.0-rc.2`；`v0.5.0` 仍是最近正式版本。
+`pyproject.toml` 的 `[project].version` 是 RACS 唯一项目版本号来源。当前工程版本为 PEP 440 格式的 `1.0.0rc2`。本地 annotated Tag `v1.0.0-rc.2` 已存在并指向提交 `da648b85c84ddd9b841fdbae709d00c9d9ac9664`；T-608 已通过 Reviewer 并将以普通提交收尾，本轮不移动 Tag。`v0.5.0` 仍是最近正式版本。
 
 - Web 是项目内部私有包，不维护独立项目版本号。
 - Changelog、任务报告、Git 标签和远程 Release 只引用该版本，不成为新的版本源。
@@ -22,8 +22,8 @@
 | `v0.3.0` | T-101～T-104 | 基础业务能力 | 已发布：阶段二 Reviewer PASS，2026-07-23 |
 | `v0.4.0` | T-201～T-204 | AI 售后流程与模型适配 | 已发布：阶段三 Reviewer PASS，2026-07-27 |
 | `v0.5.0` | T-301～T-304 | 人工协作与恢复 | 已发布：阶段四 Reviewer PASS，2026-07-27 |
-| `v1.0.0` | T-401～T-404 | 完整 MVP | `v1.0.0-rc.2` 本地候选版；尚未授权正式发布 |
-| `v1.0.0-rc.2` | T-601～T-607 及已审查 Docker 交付修复 | 完整 Agent MVP 与候选交付验证 | 阶段七出口 Reviewer PASS；Docker 闭环已有 `rc1` 输入实证，正式版前须对正式提交复跑；尚未推送或发布 |
+| `v1.0.0` | T-401～T-404 | 完整 MVP | 最近正式版本仍为 `v0.5.0`；尚未授权正式发布 |
+| `v1.0.0-rc.2` | T-601～T-608 及已审查 Docker 交付修复 | 完整 Agent MVP、消费者 Agent 接入与候选交付验证 | T-608 Reviewer PASS；本地 Tag 仍指向 T-608 前基线，本轮仅普通提交 |
 
 ### v1.0.0-rc.2 候选版与正式版晋级
 
@@ -35,7 +35,8 @@ T-401～T-404 已完成并通过 Reviewer；Python、前端、确定性 Fake、D
 
 1. 确认正式发布提交未改变已验证的 Docker 交付配置；如改变 Dockerfile、Compose、镜像输入、运行时配置或数据，则在受控环境重新完成 Compose 闭环。
 2. 重新运行 `uv lock --check`、Python、前端、Fake/真实模型专项、版本和文档一致性门禁。
-3. Release Manager 核对 `v1.0.0-rc.2` 的提交、Tag、Docker 记录与测试证据，且项目所有者明确授权正式发布。
+3. T-608 已通过 Reviewer，且真实 DeepSeek HTTP 代表路径已有实际、安全、脱敏的 4/4 通过证据；缺少 Key、供应商不可用、网络失败或限流仍不能记为通过。
+4. Release Manager 核对计划 `v1.0.0-rc.2` 的提交、Tag、Docker 记录与测试证据，且项目所有者明确授权正式发布。
 
 “未发布”只说明发布证据不足，不否定 `TASKS.md` 中已有的任务验收记录。
 
@@ -47,7 +48,7 @@ T-601～T-607 已通过各任务 Reviewer 审查及阶段七出口审查。当�
 
 版本策略建议（本轮不执行）：
 
-1. 当前候选版本为 Git Tag `v1.0.0-rc.2`，项目版本为 PEP 440 `1.0.0rc2`。它承载晚于 `v1.0.0-rc.1` 的完整 Agent MVP、阶段七受控入口及已审查 Docker 交付修复，不覆盖既有 RC。
+1. 当前工程版本为 PEP 440 `1.0.0rc2`；本地 Git Tag `v1.0.0-rc.2` 已存在，但只指向 T-608 前基线。T-608 最终真实 DeepSeek HTTP 报告在同一工作区 digest 下为 4/4 `PASSED`，并已获 Reviewer PASS；本轮仍只创建普通提交，不移动候选 Tag。
 2. 满足本节正式晋级条件并获得项目所有者授权后，才建议创建正式 `v1.0.0`。
 3. 正式 Tag、推送和远程 Release 均须项目所有者另行明确授权。
 
