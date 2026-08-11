@@ -39,14 +39,14 @@ class InMemoryTrustedApprovalEventAuthority:
         key = (event.binding, event.decision, event.event_type, event.sequence)
         return secrets.compare_digest(self._proofs.get(key, ""), event.proof)
 
-    def _issue_for_trusted_fixture(
+    def _issue_from_verified_service(
         self,
         binding: ApprovalBinding,
         decision: str,
         event_type: AgentEventType,
         sequence: int = 1,
     ) -> TrustedApprovalEvent:
-        """Private fixture hook; production callers do not construct approval events."""
+        """Issue only after a trusted service has verified the bound decision."""
 
         key = (binding, decision, event_type, sequence)
         proof = secrets.token_urlsafe(24)
@@ -58,6 +58,17 @@ class InMemoryTrustedApprovalEventAuthority:
             sequence=sequence,
             proof=proof,
         )
+
+    def _issue_for_trusted_fixture(
+        self,
+        binding: ApprovalBinding,
+        decision: str,
+        event_type: AgentEventType,
+        sequence: int = 1,
+    ) -> TrustedApprovalEvent:
+        """Test-only compatibility hook for existing T-602 fixtures."""
+
+        return self._issue_from_verified_service(binding, decision, event_type, sequence)
 
 
 class ControlledAgentExecutor:
@@ -344,6 +355,39 @@ class ControlledAgentExecutor:
             AgentReasonCode.TOOL_RESULT_ACCEPTED,
         )
         return self._failed(executing, AgentEventType.TOOL_RESULT, AgentReasonCode.EXECUTION_FAILED)
+
+    def enter_waiting_approval(self, state: AgentState, binding: ApprovalBinding) -> AgentState:
+        """Record a tool-created, server-bound approval wait without exposing a decision."""
+        if (
+            state.status is not AgentStatus.EXECUTING
+            or binding.conversation_id != state.conversation_id
+            or binding.user_id != state.user_id
+        ):
+            return self._failed(
+                state, AgentEventType.TOOL_RESULT, AgentReasonCode.CHECKPOINT_BINDING_MISMATCH
+            )
+        waiting = state.model_copy(update={"approval_binding": binding})
+        return self._move(
+            waiting,
+            AgentEventType.TOOL_RESULT,
+            AgentStatus.WAITING_APPROVAL,
+            AgentReasonCode.APPROVAL_STILL_PENDING,
+        )
+
+    def finish_controlled_execution(self, state: AgentState) -> AgentState:
+        """Move a completed controlled tool chain to drafting through an audited event."""
+        if state.status is not AgentStatus.EXECUTING:
+            return self._illegal(state, AgentEventType.TOOL_RESULT)
+        return self._move(
+            state,
+            AgentEventType.TOOL_RESULT,
+            AgentStatus.DRAFTING,
+            AgentReasonCode.TOOL_RESULT_ACCEPTED,
+        )
+
+    def fail_controlled_execution(self, state: AgentState) -> AgentState:
+        """Record a workflow/tool failure without allowing callers to choose a status."""
+        return self._failed(state, AgentEventType.TOOL_RESULT, AgentReasonCode.EXECUTION_FAILED)
 
     def complete_gate(self, state: AgentState) -> AgentState:
         if state.status is not AgentStatus.GATING:

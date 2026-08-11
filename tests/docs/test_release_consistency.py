@@ -27,9 +27,9 @@ def test_v1_release_candidate_is_not_recorded_as_final_release() -> None:
 
     assert "## [1.0.0]" not in changelog
     assert "v1.0.0 已发布" not in "\n".join((readme, releases, changelog, tasks))
-    assert "v1.0.0-rc.1" in releases
+    assert "v1.0.0-rc.2" in releases
     assert "v0.5.0` 仍是最近正式版本" in releases
-    assert "Docker 构建、Compose 启动、健康检查、初始化和服务连通闭环尚未完成" in releases
+    assert "Docker 发布验证记录" in releases
 
 
 def test_t404_reviewer_pass_does_not_claim_v1_release() -> None:

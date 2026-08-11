@@ -2,10 +2,12 @@
 
 本文记录 RACS 已完成且有证据支持的项目变更。版本规划见 [RELEASES.md](RELEASES.md)。
 
-## Unreleased
+## [1.0.0-rc.2] - 2026-08-11
 
 ### Changed
 
+- 阶段七（T-601～T-607）出口审查 `PASS`：完整 Agent MVP 新增进程内 `AgentWorkflowService` 单一受控入口，固定串联 T-602～T-606；公开输入不能携带身份覆盖、工具步骤、permit、资格、审批决定、证据、workflow 或 Gate 结果。DeepSeek 只负责理解、受限结构化计划和基于可信证据的回复草稿；状态机、工具与计划校验、确定性订单权限/资格规则、人工审批和 Response Gate 保留最终裁决权。高风险入口依次通过 T-602 的 `approval_decided` 与 `resume_requested` 可信事件迁移；批准仅恢复一次，调整进入澄清且零写入，拒绝只生成受 Gate 约束的可信拒绝回复且零写入。固定集 `1.2.0` 连续两次 38/38 且稳定投影一致。T-701～T-706 未实现，仍是后续生产化增强。
+- Docker 交付修复与验证记录已纳入候选范围：后端镜像加入运行时 `config/` 与 `data/`，Compose 宿主端口可覆盖而容器端口与健康检查保持不变。2026-08-11 在纯 ASCII 副本实际完成镜像拉取、构建、启动、健康检查、合成订单、服务间连通、日志与 `down --volumes --remove-orphans` 清理；详情见 `docs/release-validation-docker-2026-08-11.md`。该记录在 `1.0.0rc1` 输入上执行；本候选已更新为 `1.0.0rc2`，正式 `v1.0.0` 前必须以正式提交重新完成 Compose 闭环。
 - T-607 Reviewer 最终审查 `PASS`：新增版本化完整 Agent MVP 固定验收与安全对抗矩阵、确定性 Fake 运行器、六阶段失败定位、可机读验收项映射和报告 Schema；显式覆盖政策、订单、资格、低/高风险申请、审批恢复、可信回复，以及越权订单、伪造审批、缺失/漂移检查点、批准前写入、模型超时/限流/Schema 漂移、工具超时与未知写入等攻击。固定 31 项连续执行两次全部通过且稳定投影一致；缺失 checkpoint 由真实 `ApprovalRecoveryService.recover()` 入口验证 `CHECKPOINT_NOT_FOUND`、无公开事实且零写入，裸恢复事件拒绝保留为独立验收项。DeepSeek 补充按 `agent-response-draft-v1` 判定并逐例保留 Prompt、模型、配置、数据集、耗时、网络状态和失败原因；供应商网络不可用仍独立记录为 `BLOCKED`、`passed=false`，不计为通过且不影响 Fake 门禁。保留既有真实失败及改进建议。Release Manager 收尾复测两次固定集均为 31/31、稳定投影一致，相关专项与回归 126 项、文档 15 项、全仓 380 项通过且 1 项跳过；Ruff format（139 个文件）/check、mypy（138 个源文件）和 `git diff --check` 通过。未修改版本或开始任何 T-701～T-706 工作。
 - T-606 Reviewer 最终审查 `PASS`：新增 `agent-response-draft-v1` 证据关联草稿协议、DeepSeek/Fake 结构化生成、受控 EvidenceRecord 类型化快照解析和 Agent 回复编排。模型只看到本轮最小公开证据并只能引用允许的 evidence ID；未知、伪造、跨绑定、过期、失效或 payload 漂移在模型调用前拒绝。最终回复继续由 T-303 Response Gate 裁决并采用结构化事实默认拒绝：无声明自由文本不能放行，有声明文本必须等于服务端从可信对象确定性渲染的事实片段，因此退款、退货、资格、审批或申请结论不能由模型措辞单独形成或改变。Gate 拒绝时不返回原始成功文本。Release Manager 收尾复测相关专项与回归 242 项、文档 15 项、全仓 365 项通过且 1 项跳过；Ruff format（133 个文件）/check、mypy（132 个源文件）和 `git diff --check` 通过。允许进入 T-607，但尚未开始；不改变项目版本或发布状态。
 - T-605 Reviewer 最终审查 PASS：加入校验器内部签发、公开仅可消费的一次性执行许可，以及执行器私有的受控续办许可；政策、订单、资格、低风险申请、审批状态、高风险启动/恢复统一绑定服务端身份、会话、回合、状态、可信业务结果和幂等语义。成功结果签发 T-604 `EvidenceRecord`，失败与未知写入无公开证据；错误商品行绑定被拒绝。生产 Evidence authority 不暴露直接事实签发入口，检查点失败只补偿本次新建且仍为 pending 的审批。四项 Reviewer 阻塞均已关闭，允许进入 T-606。
@@ -21,6 +23,8 @@
 - T-602 新增受限、失败专用检查点分类：缺失、版本不兼容、CAS 冲突和绑定漂移分别记录稳定原因码，且一律安全停止，不能触发恢复或写入。
 
 ### Validation
+
+- rc.2 最终验证：`uv lock --check` 通过；固定 Agent MVP `1.2.0` 连续两次均 38/38、稳定投影一致；Python 全仓 392 passed、1 skipped；Agent/文档/Docker 契约专项 41 passed；Ruff format（144 个文件）/check、mypy（143 个源文件）通过；前端 Prettier、ESLint、Vitest 17 项和生产构建通过；`git diff --check` 通过。本机当前未发现 Docker CLI，未重新执行 Compose config；这不取代已归档的 Docker 闭环记录，且正式发布前须针对正式提交复跑。
 
 - 2026-08-10：T-605 相关专项与回归 173 项、文档 15 项通过；Ruff format（128 个文件）/check、mypy（127 个源文件）和 `git diff --check` 通过。此前全仓 Python 341 项通过、1 项环境相关跳过；不改变项目版本或发布状态。
 

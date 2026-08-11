@@ -10,6 +10,12 @@
 src/
   customer_service/
     acceptance_reporting/  固定验收运行器
+    agent_acceptance/      Agent MVP 固定验收与安全对抗运行器
+    agent_planning/        受限模型计划协议与确定性路由
+    agent_response/        可信证据草稿解析与 Response Gate 编排
+    agent_runtime/         有界 Agent 状态机与审计状态
+    agent_tools/           静态工具合同、许可、受控执行与证据
+    agent_workflow/        串联 T-602～T-606 的单一受控进程内入口
     approvals/             进程内审批任务与服务
     collection/            多轮信息收集与更正
     eligibility/           确定性资格规则
@@ -34,7 +40,7 @@ web/                       消费者与审批 React/Vite 页面
 deploy/compose.yaml        未在当前环境完成验证的 Compose 配置
 ```
 
-当前运行状态均是进程内合成演示：没有 PostgreSQL 数据库、数据库迁移、SSE/EventSource、持久会话历史、跨进程恢复、完整 LangGraph 图、Agent 目录或生产认证。`reports/evaluations/` 是被 Git 忽略的运行产物，不能被当作已持久化服务数据或提交证据。
+当前已有受控 Agent MVP 目录及单一 `AgentWorkflowService` 组合入口，但运行状态仍是进程内合成演示：它只串联受限计划、静态校验、既有确定性业务工具、可信证据和 Response Gate，不是通用 Agent 平台，不使用 LangGraph，也没有 PostgreSQL 数据库、数据库迁移、SSE/EventSource、持久会话历史、跨进程恢复或生产认证。`reports/evaluations/` 是被 Git 忽略的运行产物，不能被当作已持久化服务数据或提交证据。
 
 ## 3. 目录边界
 
@@ -50,7 +56,7 @@ deploy/compose.yaml        未在当前环境完成验证的 Compose 配置
 ```text
 application/               用例层与事务边界
 domain/                    独立领域模型与策略层
-agents/                    Agent 或完整 LangGraph 节点
+agents/                    未来通用 Agent 或完整 LangGraph 节点（当前未实现）
 infrastructure/database/   PostgreSQL 持久化实现
 migrations/                数据库迁移
 interfaces/sse.py          SSE 与事件重放接口

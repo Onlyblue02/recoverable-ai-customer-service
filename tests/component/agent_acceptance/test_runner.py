@@ -5,7 +5,7 @@ def test_fake_runner_is_repeatable_and_preserves_failures() -> None:
     first = run_fixed_acceptance(executor=lambda _: 0)
     second = run_fixed_acceptance(executor=lambda _: 0)
 
-    assert first["passed"] == first["total"] == 31
+    assert first["passed"] == first["total"] == 38
     assert first["failed"] == 0
     assert stable_projection(first) == stable_projection(second)
     assert first["preserved_failures"]

@@ -2,7 +2,7 @@
 
 ## 1. 唯一项目版本号
 
-`pyproject.toml` 的 `[project].version` 是 RACS 唯一项目版本号来源。当前候选版本为 PEP 440 格式的 `1.0.0rc1`，对应 Git Tag `v1.0.0-rc.1`；`v0.5.0` 仍是最近正式版本。
+`pyproject.toml` 的 `[project].version` 是 RACS 唯一项目版本号来源。当前候选版本为 PEP 440 格式的 `1.0.0rc2`，对应 Git Tag `v1.0.0-rc.2`；`v0.5.0` 仍是最近正式版本。
 
 - Web 是项目内部私有包，不维护独立项目版本号。
 - Changelog、任务报告、Git 标签和远程 Release 只引用该版本，不成为新的版本源。
@@ -22,23 +22,34 @@
 | `v0.3.0` | T-101～T-104 | 基础业务能力 | 已发布：阶段二 Reviewer PASS，2026-07-23 |
 | `v0.4.0` | T-201～T-204 | AI 售后流程与模型适配 | 已发布：阶段三 Reviewer PASS，2026-07-27 |
 | `v0.5.0` | T-301～T-304 | 人工协作与恢复 | 已发布：阶段四 Reviewer PASS，2026-07-27 |
-| `v1.0.0` | T-401～T-404 | 完整 MVP | `v1.0.0-rc.1` 候选版已准备；正式版受 Docker Hub 网络及 Compose 闭环阻塞 |
+| `v1.0.0` | T-401～T-404 | 完整 MVP | `v1.0.0-rc.2` 本地候选版；尚未授权正式发布 |
+| `v1.0.0-rc.2` | T-601～T-607 及已审查 Docker 交付修复 | 完整 Agent MVP 与候选交付验证 | 阶段七出口 Reviewer PASS；Docker 闭环已有 `rc1` 输入实证，正式版前须对正式提交复跑；尚未推送或发布 |
 
-### v1.0.0-rc.1 候选版与正式版晋级
+### v1.0.0-rc.2 候选版与正式版晋级
 
 T-401～T-404 已完成并通过 Reviewer；Python、前端、确定性 Fake、DeepSeek 真实模型评测链路以及 `uv.lock` 检查已有实际证据。DeepSeek 固定评测为 10/11，保留 1 个已记录失败案例，不能写成全量用例通过。
 
-当前 Docker Hub manifest 请求返回 EOF。Docker 构建、Compose 启动、健康检查、初始化和服务连通闭环尚未完成，因此 `v1.0.0-rc.1` 仅为候选版本，不能作为正式 `v1.0.0` 的发布证据。
+2026-08-11 已在全新纯 ASCII 副本完成 Docker Desktop/Engine、Compose、Buildx、镜像拉取、构建、启动、健康检查、服务连通、日志和清理闭环。该验证发现并修复后端镜像遗漏运行时 `config/`/`data/` 以及 Windows 宿主端口冲突；修复后 PostgreSQL、两个 API 与 Web 均通过实际检查，`down --volumes --remove-orphans` 后容器、网络和命名卷无残留。该记录执行时项目版本为 `1.0.0rc1`；`v1.0.0-rc.2` 更新了作为镜像构建输入的 `pyproject.toml` 和 `uv.lock`，因此该记录可证明交付修复和闭环可行，但不替代正式 `v1.0.0` 对正式提交的复跑。完整实际证据见 [Docker 发布验证记录](release-validation-docker-2026-08-11.md)。
 
 晋级正式 `v1.0.0` 必须同时满足：
 
-1. 在可稳定访问 Docker Hub 或受控镜像缓存的环境中，以未修改的交付配置完成 Compose 构建与启动。
-2. 确认全部容器状态、两个 API 健康端点、PostgreSQL 就绪、Web 可访问性及必要服务间连通性通过。
-3. 保存完整日志，并在 `compose down` 后确认无项目容器残留。
-4. 重新运行 `uv lock --check`、Python、前端、Fake/真实模型专项、版本和文档一致性门禁。
-5. Release Manager 核对证据，且项目所有者明确授权正式发布。
+1. 确认正式发布提交未改变已验证的 Docker 交付配置；如改变 Dockerfile、Compose、镜像输入、运行时配置或数据，则在受控环境重新完成 Compose 闭环。
+2. 重新运行 `uv lock --check`、Python、前端、Fake/真实模型专项、版本和文档一致性门禁。
+3. Release Manager 核对 `v1.0.0-rc.2` 的提交、Tag、Docker 记录与测试证据，且项目所有者明确授权正式发布。
 
 “未发布”只说明发布证据不足，不否定 `TASKS.md` 中已有的任务验收记录。
+
+### 完整 Agent MVP 与下一版本建议
+
+T-601～T-607 已通过各任务 Reviewer 审查及阶段七出口审查。当前实际能力是进程内、受控的 Agent MVP：DeepSeek 仅负责意图理解、受限结构化计划和基于本轮可信证据的回复草稿；它不能直接调用工具，也不能决定订单权限、资格、风险、审批、业务写入或最终公开回复。显式状态机、静态工具/计划校验器、确定性订单权限与资格规则、人工审批链路和 Response Gate 保留最终裁决权。
+
+阶段七固定集 `1.2.0` 连续两次均为 38/38 且稳定投影一致；阶段专项 135 项、全仓 389 passed/1 skipped、文档 15 项通过。DeepSeek 独立补充仍保留 `BLOCKED / DEEPSEEK_PROVIDER_UNAVAILABLE`，不计为通过；既有真实失败案例继续保留。当前状态、证据 authority、工作流组合和审计仍为进程内实现，不提供生产持久化、跨进程恢复、生产认证或 SLA。T-701～T-706 未实现，只是后续生产化增强的预留编号。
+
+版本策略建议（本轮不执行）：
+
+1. 当前候选版本为 Git Tag `v1.0.0-rc.2`，项目版本为 PEP 440 `1.0.0rc2`。它承载晚于 `v1.0.0-rc.1` 的完整 Agent MVP、阶段七受控入口及已审查 Docker 交付修复，不覆盖既有 RC。
+2. 满足本节正式晋级条件并获得项目所有者授权后，才建议创建正式 `v1.0.0`。
+3. 正式 Tag、推送和远程 Release 均须项目所有者另行明确授权。
 
 ## 3. 任务报告
 
@@ -99,4 +110,4 @@ docker compose -f deploy/compose.yaml up --build -d
 docker compose -f deploy/compose.yaml ps
 ```
 
-之后按 `deploy/compose.yaml` 的健康检查和初始化说明验证服务，再以 `docker compose -f deploy/compose.yaml down` 收尾。当前发布记录中 `uv lock --check` 已通过，Docker CLI/Engine 与 Compose config 已验证；但 BuildKit 构建失败，故启动、健康检查、初始化和连通性仍不是 `v1.0.0` 发布证据。
+之后按 `deploy/compose.yaml` 的健康检查和初始化说明验证服务，再以 `docker compose -f deploy/compose.yaml down` 收尾。2026-08-11 已按这一闭环实际完成验证并保存证据；若交付配置变化，必须按同一清单重新验证。逐项格式见 [Docker 发布验证模板](DOCKER_RELEASE_VALIDATION_TEMPLATE.md)，实际记录见 [2026-08-11 Docker 发布验证记录](release-validation-docker-2026-08-11.md)。

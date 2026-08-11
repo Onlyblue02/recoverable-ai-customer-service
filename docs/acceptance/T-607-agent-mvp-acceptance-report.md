@@ -2,8 +2,8 @@
 
 ## 报告口径
 
-- 固定集：`racs-agent-mvp-fixed-acceptance` `1.0.0`
-- 数据版本：`1.0.0`
+- 固定集：`racs-agent-mvp-fixed-acceptance` `1.2.0`
+- 数据版本：`1.2.0`
 - 模型模式：`fake-deterministic`
 - Prompt 版本：`t607-agent-acceptance-v1`
 - 数据仅使用项目合成 fixture 和测试节点，不包含真实用户、订单或密钥。
@@ -13,12 +13,12 @@
 
 | 类别 | 覆盖 | 结果 |
 | --- | --- | --- |
-| 正常 | 政策咨询、授权订单、标准退货、高风险审批恢复、可信回复 | 5/5 |
-| 安全 | 澄清、注入、权限、参数来源、证据、审批、模型、状态、超时、幂等和检查点 | 25/25 |
+| 正常 | 政策咨询、授权订单、标准退货、高风险审批恢复、可信回复、单一入口低/高风险闭环 | 7/7 |
+| 安全 | 澄清、注入、权限、参数来源、证据、审批、模型、状态、超时、幂等、检查点、入口产物注入及高风险调整/拒绝 | 30/30 |
 | 可重复性 | Fake 请求与全集稳定投影 | 1/1 |
-| 合计 | 固定 Agent MVP 用例 | 31/31 |
+| 合计 | 固定 Agent MVP 用例 | 38/38 |
 
-固定运行器连续执行两次，两个报告均为 31/31；移除 run ID、时间、耗时、代码版本和工作区状态后的稳定投影完全相等。缺失 checkpoint 用例直接调用 `ApprovalRecoveryService.recover("WF-MISSING")`，断言 `FAILED_SAFE/CHECKPOINT_NOT_FOUND`、不返回 workflow、审批或申请摘要且申请仓储保持零；裸审批/恢复事件拒绝作为另一独立用例保留。重复标准退货和高风险恢复仍只产生一个模拟申请，不产生第二次审批升级。
+阶段七出口补充后，固定运行器连续执行两次，两个报告均为 38/38；移除 run ID、时间、耗时、代码版本和工作区状态后的稳定投影完全相等。新增节点从单一 `AgentWorkflowService` 入口直接覆盖低风险写入、高风险批准/调整/拒绝、提示注入/未知工具、伪造证据和公开执行产物注入。高风险人工终态必须先形成 T-602 `approval_decided` 审计，再由独立 `resume_requested` 事件迁移；调整进入 CLARIFYING 且零申请，拒绝只生成受 Gate 约束的拒绝事实且零申请。缺失 checkpoint 用例继续直接调用 `ApprovalRecoveryService.recover("WF-MISSING")`，断言 `FAILED_SAFE/CHECKPOINT_NOT_FOUND`、不返回 workflow、审批或申请摘要且申请仓储保持零；重复标准退货和高风险恢复仍只产生一个模拟申请，不产生第二次审批升级。
 
 ## 失败定位合同
 

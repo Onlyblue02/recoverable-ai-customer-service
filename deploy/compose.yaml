@@ -24,7 +24,7 @@ services:
       RACS_ENVIRONMENT: demo
       RACS_LOG_LEVEL: INFO
     ports:
-      - "8000:8000"
+      - "${RACS_BACKEND_PORT:-8000}:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/live')"]
       interval: 5s
@@ -37,7 +37,7 @@ services:
       dockerfile: deploy/backend.Dockerfile
     command: ["uvicorn", "mock_business.main:app", "--host", "0.0.0.0", "--port", "8001"]
     ports:
-      - "8001:8001"
+      - "${RACS_MOCK_BUSINESS_PORT:-8001}:8001"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health/live')"]
       interval: 5s
@@ -49,7 +49,7 @@ services:
       context: ..
       dockerfile: deploy/web.Dockerfile
     ports:
-      - "5173:80"
+      - "${RACS_WEB_PORT:-5173}:80"
 
 volumes:
   postgres-data:

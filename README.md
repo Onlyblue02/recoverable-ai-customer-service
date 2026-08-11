@@ -1,10 +1,10 @@
 # Recoverable AI Customer Service
 
-RACS 是一个可恢复式 AI 售后客服项目。阶段一 `v0.2.0`、阶段二 `v0.3.0`、阶段三 `v0.4.0` 和阶段四 `v0.5.0` 已按 Reviewer 门禁发布；`v0.5.0` 仍是最近正式版本。T-401～T-404 已完成并通过 Reviewer，当前准备版本为候选版 `v1.0.0-rc.1`；Docker Hub 网络阻塞导致 Docker 构建、健康检查和 Compose 闭环尚未完成，因此 `v1.0.0` 未发布。
+RACS 是一个可恢复式 AI 售后客服项目。阶段一 `v0.2.0`、阶段二 `v0.3.0`、阶段三 `v0.4.0` 和阶段四 `v0.5.0` 已按 Reviewer 门禁发布；`v0.5.0` 仍是最近正式版本。T-401～T-404 与 T-601～T-607 均已通过 Reviewer 和阶段出口审查；当前本地候选版本为 `v1.0.0-rc.2`。Docker 构建、服务启动、健康检查、连通性和清理闭环已有 `rc1` 输入的实际通过记录；正式 `v1.0.0` 前须对正式提交复跑，且尚未获得项目所有者的正式发布授权。
 
 ## 项目版本与发布
 
-项目唯一版本号来源是 `pyproject.toml` 的 `[project].version`，当前候选版本为 PEP 440 格式的 `1.0.0rc1`，对应 Git Tag `v1.0.0-rc.1`。阶段版本规划、发布门禁与一致性检查见 `docs/RELEASES.md`；版本变化见 `docs/CHANGELOG.md`；任务验收证据按 `docs/task-reports/T-xxx.md` 维护。
+项目唯一版本号来源是 `pyproject.toml` 的 `[project].version`，当前候选版本为 PEP 440 格式的 `1.0.0rc2`，对应 Git Tag `v1.0.0-rc.2`。阶段版本规划、发布门禁与一致性检查见 `docs/RELEASES.md`；版本变化见 `docs/CHANGELOG.md`；任务验收证据按 `docs/task-reports/T-xxx.md` 维护。
 
 阶段一产品基线已通过 Reviewer 复审，正式版本为 `v0.2.0`，允许进入 T-101。该版本只证明 T-000～T-002 的工程、合成数据和固定验收合同，不代表 T-101 及后续业务能力已经实现。
 
@@ -64,6 +64,19 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start_local_demo.ps1
 固定验收及失败案例的实际结果见 [T-403 验收报告](docs/acceptance/T-403-fixed-acceptance-report.md)。它记录 10 条代表性公开路径与保留的真实模型失败样本；并非把 10 条通过写成全部 38 条固定契约均已逐条运行。
 
 当前界面与流程是确定性、进程内的合成演示：不执行真实退款，不提供生产认证、持久数据库、跨进程恢复、SSE 或完整生产部署。真实 DeepSeek 模型适配与专项评测独立存在，但消费者/审批演示路径不依赖 API Key。
+
+## 完整 Agent MVP
+
+T-601～T-607 已通过单任务 Reviewer 审查和阶段七出口审查。当前实现提供进程内 `AgentWorkflowService` 单一受控入口，组合显式状态机、结构化计划、静态工具权限、既有确定性业务工具、可信 EvidenceRecord 和 Response Gate。固定验收集 `1.2.0` 覆盖正常、失败与攻击路径，阶段出口实际结果为连续两次 38/38 且稳定投影一致；完整记录见 [阶段七报告](docs/task-reports/STAGE-7-AGENT-MVP.md) 和 [T-607 固定验收报告](docs/acceptance/T-607-agent-mvp-acceptance-report.md)。
+
+职责边界如下：
+
+- DeepSeek 只负责意图理解、受限结构化计划和基于本轮可信证据的回复草稿；它不能直接调用工具、提供可信身份/permit、裁决资格或审批，也不能决定最终公开回复。
+- 显式状态机决定合法迁移与失败终止；静态工具注册表和计划校验器决定允许的工具、参数来源、预算和副作用边界。
+- 订单权限与退货资格由确定性业务服务裁决；高风险操作必须经过人工审批与受控恢复；Response Gate 对最终事实、证据和公开文本作最后发送裁决。
+- 当前是进程内合成 Agent MVP，不是通用 Agent 平台或生产 API；不提供生产持久化、跨进程恢复、生产认证、SLA 或真实退款执行。T-701～T-706 未实现，仅预留给后续生产化增强。
+
+当前本地候选版本为 `v1.0.0-rc.2`（项目版本 `1.0.0rc2`），正式目标仍为 `v1.0.0`；尚未创建正式 Tag 或推送。Docker 发布验证清单见 [Docker 发布验证模板](docs/DOCKER_RELEASE_VALIDATION_TEMPLATE.md)，实际通过记录见 [2026-08-11 Docker 发布验证记录](docs/release-validation-docker-2026-08-11.md)。
 
 ## 合成数据基线
 

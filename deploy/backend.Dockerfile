@@ -6,6 +6,8 @@ COPY --from=uv /uv /uvx /bin/
 WORKDIR /app
 COPY pyproject.toml uv.lock README.md ./
 RUN uv sync --frozen --no-dev --no-install-project
+COPY config ./config
+COPY data ./data
 COPY src ./src
 RUN uv sync --frozen --no-dev
 

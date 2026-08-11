@@ -15,6 +15,9 @@ def test_architecture_documents_state_the_current_in_memory_demo_boundary() -> N
 
     assert "当前没有生产认证、持久数据库、PostgreSQL、迁移、SSE/EventSource" in architecture
     assert "没有 PostgreSQL 数据库、数据库迁移、SSE/EventSource" in structure
+    assert "agent_workflow/" in structure
+    assert "单一受控进程内入口" in structure
+    assert "不是通用 Agent 平台" in structure
     assert "持久数据库" in readme
     assert "进程内合成状态" in startup
 

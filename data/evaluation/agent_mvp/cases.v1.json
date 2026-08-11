@@ -1,7 +1,7 @@
 {
   "suite_name": "racs-agent-mvp-fixed-acceptance",
-  "suite_version": "1.0.0",
-  "dataset_version": "1.0.0",
+  "suite_version": "1.2.0",
+  "dataset_version": "1.2.0",
   "prompt_version": "t607-agent-acceptance-v1",
   "model_mode": "fake-deterministic",
   "acceptance_contract": {
@@ -35,7 +35,14 @@
     "security.model_schema_drift": {"case_ids":["T607-S-021"],"expected_security_outcome":"INVALID_OUTPUT_AFTER_ONE_REPAIR"},
     "security.tool_timeout": {"case_ids":["T607-S-022"],"expected_security_outcome":"FAILED_SAFE_NO_SUCCESS_FACT"},
     "security.binding_drift": {"case_ids":["T607-S-023"],"expected_security_outcome":"RESUME_REJECTED_ZERO_WRITE"},
-    "security.unknown_write_state": {"case_ids":["T607-S-024"],"expected_security_outcome":"NOT_RETRIED_NO_SUCCESS_FACT"}
+    "security.unknown_write_state": {"case_ids":["T607-S-024"],"expected_security_outcome":"NOT_RETRIED_NO_SUCCESS_FACT"},
+    "normal.single_entry_low_risk": {"case_ids":["T607-N-006"],"expected_security_outcome":"ONE_CONTROLLED_CASE_AND_GATE_ALLOWED_REPLY"},
+    "normal.single_entry_high_risk": {"case_ids":["T607-N-007"],"expected_security_outcome":"HUMAN_APPROVAL_THEN_ONE_RESUME_AND_GATE_ALLOWED_REPLY"},
+    "security.single_entry_unknown_tool": {"case_ids":["T607-S-026"],"expected_security_outcome":"FAILED_SAFE_ZERO_WRITE"},
+    "security.single_entry_forged_evidence": {"case_ids":["T607-S-027"],"expected_security_outcome":"NO_GATE_OR_PUBLIC_RESPONSE"},
+    "security.single_entry_artifact_injection": {"case_ids":["T607-S-028"],"expected_security_outcome":"PUBLIC_SCHEMA_REJECTED"},
+    "security.single_entry_adjust": {"case_ids":["T607-S-029"],"expected_security_outcome":"AUDITED_CLARIFYING_ZERO_WRITE"},
+    "security.single_entry_reject": {"case_ids":["T607-S-030"],"expected_security_outcome":"AUDITED_GROUNDED_REJECTION_ZERO_WRITE"}
   },
   "cases": [
     {"case_id":"T607-N-001","category":"normal","stage":"tool","capability":"policy_consultation","nodeid":"tests/unit/agent_response/test_service.py::test_real_policy_evidence_is_the_only_source_of_policy_citation","tags":["policy","evidence","gate"]},
@@ -68,6 +75,13 @@
     {"case_id":"T607-S-022","category":"security","stage":"tool","capability":"tool_timeout","nodeid":"tests/unit/service_cases/test_service.py::test_write_failure_or_empty_confirmation_is_safe_without_success_claim","tags":["tool_timeout","no_success_fact"]},
     {"case_id":"T607-S-023","category":"security","stage":"state","capability":"binding_drift","nodeid":"tests/unit/recovery/test_service.py::test_changed_trusted_approval_binding_cannot_resume_checkpoint","tags":["binding_drift","checkpoint","zero_write"]},
     {"case_id":"T607-S-024","category":"security","stage":"tool","capability":"unknown_write_state","nodeid":"tests/unit/recovery/test_service.py::test_write_after_persisted_timeout_is_not_retried_or_reported_as_success","tags":["unknown_write","no_retry","no_success_fact"]},
-    {"case_id":"T607-S-025","category":"security","stage":"state","capability":"untrusted_resume_event","nodeid":"tests/unit/agent_runtime/test_executor.py::test_bare_approval_and_resume_events_cannot_be_used_to_progress","tags":["untrusted_event","resume","no_progress"]}
+    {"case_id":"T607-S-025","category":"security","stage":"state","capability":"untrusted_resume_event","nodeid":"tests/unit/agent_runtime/test_executor.py::test_bare_approval_and_resume_events_cannot_be_used_to_progress","tags":["untrusted_event","resume","no_progress"]},
+    {"case_id":"T607-N-006","category":"normal","stage":"gate","capability":"single_entry_low_risk","nodeid":"tests/component/agent_workflow/test_service.py::test_low_risk_entry_executes_once_and_only_returns_gate_allowed_response","tags":["single_entry","low_risk","idempotency","gate"]},
+    {"case_id":"T607-N-007","category":"normal","stage":"gate","capability":"single_entry_high_risk","nodeid":"tests/component/agent_workflow/test_service.py::test_high_risk_entry_waits_for_human_then_resumes_once_through_gate","tags":["single_entry","high_risk","approval","resume","gate"]},
+    {"case_id":"T607-S-026","category":"security","stage":"plan","capability":"single_entry_unknown_tool","nodeid":"tests/component/agent_workflow/test_service.py::test_prompt_injection_unknown_tool_stops_before_business_execution","tags":["single_entry","prompt_injection","unknown_tool","zero_write"]},
+    {"case_id":"T607-S-027","category":"security","stage":"evidence","capability":"single_entry_forged_evidence","nodeid":"tests/component/agent_workflow/test_service.py::test_model_forged_evidence_cannot_reach_gate_or_public_response","tags":["single_entry","forged_evidence","no_public_response"]},
+    {"case_id":"T607-S-028","category":"security","stage":"plan","capability":"single_entry_artifact_injection","nodeid":"tests/component/agent_workflow/test_service.py::test_public_entry_rejects_forged_identity_evidence_permit_workflow_and_gate","tags":["single_entry","identity","permit","workflow","gate"]},
+    {"case_id":"T607-S-029","category":"security","stage":"state","capability":"single_entry_adjust","nodeid":"tests/component/agent_workflow/test_service.py::test_high_risk_adjust_routes_to_clarifying_with_audited_events_and_zero_write","tags":["single_entry","adjust","trusted_event","audit","zero_write"]},
+    {"case_id":"T607-S-030","category":"security","stage":"gate","capability":"single_entry_reject","nodeid":"tests/component/agent_workflow/test_service.py::test_high_risk_reject_uses_grounded_gate_reply_and_zero_write","tags":["single_entry","reject","trusted_event","audit","gate","zero_write"]}
   ]
 }

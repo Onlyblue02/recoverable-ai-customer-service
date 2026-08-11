@@ -29,9 +29,9 @@ def test_agent_mvp_case_contract_is_versioned_unique_and_synthetic() -> None:
     nodeids = [case["nodeid"] for case in cases]
     serialized = json.dumps(document, ensure_ascii=False)
 
-    assert document["suite_version"] == "1.0.0"
+    assert document["suite_version"] == "1.2.0"
     assert document["model_mode"] == "fake-deterministic"
-    assert len(cases) == 31
+    assert len(cases) == 38
     assert len(case_ids) == len(set(case_ids))
     assert len(nodeids) == len(set(nodeids))
     assert {case["category"] for case in cases} == {"normal", "security", "repeatability"}
