@@ -137,6 +137,22 @@ def test_public_payload_rejects_forged_business_facts() -> None:
         )
 
 
+def test_missing_checkpoint_recovery_fails_safely_without_write_or_facts() -> None:
+    cases = InMemoryServiceCaseRepository()
+    runner = service(trusted_task(ApprovalStatus.APPROVED), cases=cases)
+
+    result = runner.recover(
+        "WF-MISSING", context=RecoveryAccessContext(current_user_id="USR-DEMO-001")
+    )
+
+    assert result.stage is RecoveryStage.FAILED_SAFE
+    assert result.error_code is RecoveryErrorCode.CHECKPOINT_NOT_FOUND
+    assert result.workflow_id is None
+    assert result.approval is None
+    assert result.service_case is None
+    assert cases.case_count == 0
+
+
 def test_pending_checkpoint_is_server_sourced_and_survives_restart() -> None:
     task = trusted_task()
     repo = InMemoryRecoveryCheckpointRepository()

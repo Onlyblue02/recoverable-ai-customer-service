@@ -26,3 +26,21 @@ T-403 使用本目录的固定版本和既有公开服务路径生成代表性�
 ```
 
 运行产物位于被 Git 忽略的 `reports/evaluations/`；可审计摘要见 `docs/acceptance/T-403-fixed-acceptance-report.md`。`failures/cases.v1.json` 保留真实历史失败及改进建议，不能被通过结果覆盖。
+
+## T-607 Agent MVP 固定验收
+
+`agent_mvp/cases.v1.json` 定义版本化、纯合成的完整 Agent 固定验收和安全对抗矩阵。确定性运行器逐例执行已审查的状态机、计划、工具、证据、模型和 Gate 测试节点：
+
+```text
+.venv\Scripts\python.exe -m customer_service.agent_acceptance.runner --mode fake --output reports/evaluations/t607-agent-mvp.json
+```
+
+真实 DeepSeek 使用独立非阻塞补充集：
+
+```text
+.venv\Scripts\python.exe -m customer_service.agent_acceptance.runner --mode deepseek --output reports/evaluations/t607-deepseek-supplement.json
+```
+
+缺少配置、网络失败或限流必须记录为 `skipped` 或 `blocked`，不得计入确定性 Fake 门禁。真实模型结果不构成 SLA；已有真实失败继续保留来源、实际结果和改进建议。
+
+T-607 的回复草稿补充项按 `agent-response-draft-v1` Schema、允许声明类型、本次输入 evidence ID 和禁止业务对象字段匹配；合法输出不要求与动态生成文本逐字相等。逐例报告包含 Prompt、模型、配置、数据集、耗时、网络状态和失败原因，`invalid_output`、`provider_failure`、`unavailable` 与 `skipped` 均不得记为通过。

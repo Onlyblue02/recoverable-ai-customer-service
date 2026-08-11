@@ -1,0 +1,33 @@
+{
+  "dataset_version": "1.0.0",
+  "cases": [
+    {
+      "case_id": "T607-DS-PLAN-001",
+      "task": "agent_plan_generation",
+      "text": "请查询我的订单 ORD-NORMAL-001",
+      "prompt_version": "t607-agent-plan-v1",
+      "expected": {
+        "schema_version": "agent-plan-v1",
+        "intent": "order_query",
+        "requested_capability": "order.get_authorized",
+        "extracted_parameters": {"order_id": "ORD-NORMAL-001", "return_reason": null, "item_condition": null},
+        "clarification_fields": [],
+        "uncertainty_reason": null
+      }
+    },
+    {
+      "case_id": "T607-DS-DRAFT-001",
+      "task": "agent_response_draft_generation",
+      "text": "请根据证据生成订单查询草稿",
+      "prompt_version": "t607-agent-response-v1",
+      "evidence": [{"evidence_id":"EVD-SYNTHETIC-ORDER-001","text":"{\"tool_id\":\"order.get_authorized\",\"public_fields\":[{\"name\":\"order_id\",\"value\":\"ORD-NORMAL-001\"}]}"}],
+      "expected": {
+        "allowed_statuses": ["succeeded"],
+        "schema_version": "agent-response-draft-v1",
+        "allowed_claim_types": ["order"],
+        "evidence_ids": ["EVD-SYNTHETIC-ORDER-001"],
+        "forbidden_fields": ["order", "eligibility", "approval", "service_case"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/racs/schemas/agent-mvp-report-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["report_kind","report_version","suite_version","dataset_version","model_mode","code_version","workspace_state","run_id","executed_at","cases","passed","failed","total","preserved_failures"],
+  "properties": {
+    "report_kind": {"const":"t607_agent_mvp_fixed_acceptance"},
+    "report_version": {"const":"1.0.0"},
+    "suite_version": {"type":"string","minLength":1},
+    "dataset_version": {"type":"string","minLength":1},
+    "model_mode": {"const":"fake-deterministic"},
+    "code_version": {"type":"string","minLength":1},
+    "workspace_state": {"enum":["clean","dirty","unavailable"]},
+    "run_id": {"type":"string","minLength":1},
+    "executed_at": {"type":"string","format":"date-time"},
+    "passed": {"type":"integer","minimum":0},
+    "failed": {"type":"integer","minimum":0},
+    "total": {"type":"integer","minimum":1},
+    "preserved_failures": {"type":"array","minItems":1,"items":{"type":"object"}},
+    "cases": {
+      "type":"array","minItems":1,
+      "items": {
+        "type":"object","additionalProperties":false,
+        "required":["case_id","category","stage","capability","acceptance_requirement","expected","actual","passed","status","failure_reason","audit_ref","duration_ms"],
+        "properties": {
+          "case_id":{"type":"string","pattern":"^T607-"},
+          "category":{"enum":["normal","security","repeatability"]},
+          "stage":{"enum":["state","plan","tool","evidence","model","gate"]},
+          "capability":{"type":"string","minLength":1},
+          "acceptance_requirement":{"type":"string","minLength":1},
+          "expected":{"type":"object"},
+          "actual":{"type":"object"},
+          "passed":{"type":"boolean"},
+          "status":{"enum":["passed","failed"]},
+          "failure_reason":{"type":["string","null"]},
+          "audit_ref":{"type":"object"},
+          "duration_ms":{"type":"integer","minimum":0}
+        }
+      }
+    }
+  }
+}

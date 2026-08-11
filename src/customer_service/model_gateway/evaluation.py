@@ -3,6 +3,7 @@
 import argparse
 import json
 import subprocess
+import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -61,16 +62,20 @@ def run_evaluation(
     identity = code_identity or _code_identity()
     results: list[dict[str, Any]] = []
     for case in cases:
+        started = time.perf_counter()
         response = gateway.generate(case.request)
         actual = response.output.model_dump(mode="json") if response.output is not None else None
+        passed = _matches_expected(case, actual, response.status)
         results.append(
             {
                 "case_id": case.case_id,
                 "task": case.request.task.value,
                 "prompt_version": case.request.prompt_version,
                 "status": response.status.value,
-                "passed": _matches_expected(case, actual, response.status),
+                "passed": passed,
                 "actual": actual,
+                "duration_ms": round((time.perf_counter() - started) * 1000),
+                "failure_reason": _failure_reason(response.status, passed),
             }
         )
     return {
@@ -124,6 +129,32 @@ def _matches_expected(
         return True
     if actual is None:
         return False
+    if case.request.task is ModelTask.AGENT_RESPONSE_DRAFT_GENERATION:
+        allowed_claim_types = set(case.expected.get("allowed_claim_types", []))
+        trusted_ids = {evidence.evidence_id for evidence in case.request.evidence}
+        expected_ids = set(case.expected.get("evidence_ids", trusted_ids))
+        claims = actual.get("claims")
+        if not isinstance(claims, list):
+            return False
+        referenced_ids: set[str] = set()
+        for claim in claims:
+            if not isinstance(claim, dict):
+                return False
+            if allowed_claim_types and claim.get("claim_type") not in allowed_claim_types:
+                return False
+            evidence_ids = claim.get("evidence_ids")
+            if not isinstance(evidence_ids, list) or not all(
+                isinstance(evidence_id, str) for evidence_id in evidence_ids
+            ):
+                return False
+            referenced_ids.update(evidence_ids)
+        forbidden_fields = set(case.expected.get("forbidden_fields", []))
+        return (
+            actual.get("schema_version") == case.expected.get("schema_version")
+            and referenced_ids.issubset(trusted_ids)
+            and referenced_ids == expected_ids
+            and not forbidden_fields.intersection(actual)
+        )
     if case.request.task is not ModelTask.GROUNDED_RESPONSE_GENERATION:
         return actual == case.expected
     expected_ids = case.expected["evidence_ids"]
@@ -137,6 +168,17 @@ def _matches_expected(
         and all(any(term in text for term in group) for group in required_any_groups)
         and all(term not in text for term in prohibited_text)
     )
+
+
+def _failure_reason(status: ModelResultStatus, passed: bool) -> str | None:
+    if passed:
+        return None
+    return {
+        ModelResultStatus.INVALID_OUTPUT: "INVALID_STRUCTURED_OUTPUT",
+        ModelResultStatus.PROVIDER_FAILURE: "PROVIDER_FAILURE",
+        ModelResultStatus.UNAVAILABLE: "PROVIDER_UNAVAILABLE",
+        ModelResultStatus.SUCCEEDED: "EXPECTED_RESULT_MISMATCH",
+    }[status]
 
 
 def main() -> int:

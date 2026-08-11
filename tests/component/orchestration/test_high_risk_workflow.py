@@ -115,6 +115,7 @@ def test_high_risk_approved_story_creates_one_grounded_case() -> None:
     assert (
         started.status is HighRiskWorkflowStatus.WAITING_APPROVAL and started.approval is not None
     )
+    assert started.service_case is None and cases.case_count == 0
     completed = service.decide_and_resume(
         HighRiskDecisionInput(
             decision=ApprovalDecision.APPROVE,
