@@ -1,0 +1,45 @@
+RACS Docker Compose post-fix validation
+base_revision=5b24609fba10ce9a189c06f8b0da87efda0082ea
+manifest_version=docker-post-fix-input-v2
+head_materialization=git -c core.autocrlf=false archive
+post_fix_digest=4cbba7d00f4c3b8bbf713fca47703fbc319c710ea55844e6709407d3cb2d8b0f
+manifest_entries=142
+working_tree_entries=2
+project=racsverifyraw5b24609
+ascii_copy=C:\temp\racs-docker-postfix-raw-5b24609
+
+compose_config_exit=0
+compose_up_build_exit=0
+build_copied_deploy_nginx_conf=true
+postgres_health=healthy
+racs_api_health=healthy
+mock_business_api_health=healthy
+web_http_status=200
+web_agent_modes_status=200
+web_to_racs_api_status=200
+racs_api_to_mock_business_api_status=200
+racs_api_to_postgres_tcp=connected
+
+fake_policy_status=completed
+fake_policy_reason=RESPONSE_GATE_ALLOWED
+fake_policy_citations=1
+fake_low_risk_status=completed
+fake_low_risk_reason=RESPONSE_GATE_ALLOWED
+fake_low_risk_service_case=SC-SIM-001
+fake_high_risk_before=waiting_approval
+fake_high_risk_before_service_case=none
+fake_high_risk_decision=approved
+fake_high_risk_after=completed
+fake_high_risk_reason=RESPONSE_GATE_ALLOWED
+fake_high_risk_service_case=SC-SIM-002
+
+deepseek_configured=false
+deepseek_http_evaluation=NOT_EXECUTED
+
+compose_down_volumes_remove_orphans_exit=0
+compose_ps_after_down_exit=0
+volume_inspect_exit=1
+volume_inspect_result=no such volume
+project_containers_remaining=0
+project_networks_remaining=0
+project_volumes_remaining=0

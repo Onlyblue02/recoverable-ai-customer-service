@@ -1,0 +1,861 @@
+﻿{
+    "manifest_version":  "docker-post-fix-input-v2",
+    "base_revision":  "5b24609fba10ce9a189c06f8b0da87efda0082ea",
+    "head_materialization":  "git -c core.autocrlf=false archive",
+    "workspace_state":  "dirty",
+    "post_fix_digest":  "4cbba7d00f4c3b8bbf713fca47703fbc319c710ea55844e6709407d3cb2d8b0f",
+    "entries":  [
+                    {
+                        "path":  "config/return-eligibility-rules.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "4914ff61920030970fed0d30e0d68a759354d0825f81a8f32621049f22bc1eb9",
+                        "size":  220
+                    },
+                    {
+                        "path":  "data/evaluation/agent_mvp/cases.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "d5a4dee715259bf7863054aa026c8eb6fac5f589c782268c33602006716512c9",
+                        "size":  15456
+                    },
+                    {
+                        "path":  "data/evaluation/agent_mvp/deepseek-cases.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "1eb56311983644efd16e0f0edade6608bcf8fa2b222a016db9d57264774bef20",
+                        "size":  1272
+                    },
+                    {
+                        "path":  "data/evaluation/e2e/stories.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "b1a6bb2bc3bd7888db42f484a4b1a6cbf7075f9245859d23cb8aaa2c1d539254",
+                        "size":  5643
+                    },
+                    {
+                        "path":  "data/evaluation/experience/cases.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "f479e1879cf325e365925f5a9a97be452cb0659bcf189c1c8244e552ccc80bf5",
+                        "size":  9523
+                    },
+                    {
+                        "path":  "data/evaluation/failures/cases.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "60da370d3501afb76b5f8fb2f04e43dbed07329427f7ddaec46a1a2c5ea57c28",
+                        "size":  1428
+                    },
+                    {
+                        "path":  "data/evaluation/graph/cases.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "a4a5a70479c632e11fce1103b75776597ba399cd1c956bb089f4c61dfe2d1f6e",
+                        "size":  11955
+                    },
+                    {
+                        "path":  "data/evaluation/manifest.json",
+                        "source":  "HEAD",
+                        "sha256":  "f956db25047b43a8a245d8374e61496373507f8979bd120137eb40b1ddcc8772",
+                        "size":  905
+                    },
+                    {
+                        "path":  "data/evaluation/model_gateway/cases.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "830ab2e7df66f389cd99abb7a36bf421c02d57479620cc5018c25bb251cc6463",
+                        "size":  4912
+                    },
+                    {
+                        "path":  "data/evaluation/README.md",
+                        "source":  "HEAD",
+                        "sha256":  "a4b3eae30983e29d68e243ecc2baf9b2783376e73388fdfb8fbc978b4c055cbf",
+                        "size":  2559
+                    },
+                    {
+                        "path":  "data/evaluation/retrieval/cases.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "da908ae7e3d431d181ce862a9a3f5d917b67e5755ba506133a381ada84c86dba",
+                        "size":  11408
+                    },
+                    {
+                        "path":  "data/evaluation/routing/cases.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "a590894188a582087626a8bb496da05c671e5eac36d56b65ee3130e065e014ca",
+                        "size":  8935
+                    },
+                    {
+                        "path":  "data/evaluation/rules/cases.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "c41dfb104bbf0cf0136f24be5c97820c7cc63a976cb8921a95aeab9db8b3ed20",
+                        "size":  12297
+                    },
+                    {
+                        "path":  "data/evaluation/schema/acceptance-suite.schema.json",
+                        "source":  "HEAD",
+                        "sha256":  "b33daf3fd6e7c37d33f5a06124cb7e1193a49b7a53855b148ab87356f022324a",
+                        "size":  5509
+                    },
+                    {
+                        "path":  "data/evaluation/schema/agent-mvp-report.schema.json",
+                        "source":  "HEAD",
+                        "sha256":  "8cbc9ef19c988808b327a68f3624078fb46a96c96ab0eb3c9c3b9b0ce11230f4",
+                        "size":  2117
+                    },
+                    {
+                        "path":  "data/knowledge/active/policies.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "fe3ec8911bc3272d4f7050d898039dd16a483c77840e69933bdb602a30ad6045",
+                        "size":  1949
+                    },
+                    {
+                        "path":  "data/knowledge/conflicting/policies.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "5c95a30e7c84513a193432eff75dc4158209c81ab94c6ca6d46b5fd3e81b1daf",
+                        "size":  1837
+                    },
+                    {
+                        "path":  "data/knowledge/expired/policies.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "a3017ca0188eefe2bcb94e875f65912e1e6082acdaf198fe3b2ecb3d812c9012",
+                        "size":  889
+                    },
+                    {
+                        "path":  "data/manifest.json",
+                        "source":  "HEAD",
+                        "sha256":  "af2a91bba4485c3525f34857419b01f1aedafc3202c08c5089cc51bbb704ceec",
+                        "size":  1799
+                    },
+                    {
+                        "path":  "data/README.md",
+                        "source":  "HEAD",
+                        "sha256":  "10ba8507c3e06fdff61e8e3385c8a744c36eca9a2c451105e87c95a5754d7dad",
+                        "size":  2867
+                    },
+                    {
+                        "path":  "data/seed/orders/orders.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "1f058aa73075995431da854128e6a134fcd50b95387bcad57987ae7847bf581d",
+                        "size":  5277
+                    },
+                    {
+                        "path":  "data/seed/products/products.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "7c955e3c72a3f5461ed7924da741744d79b2225c069d3db5ea649647fed20e96",
+                        "size":  3570
+                    },
+                    {
+                        "path":  "data/seed/service_cases/service_cases.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "46989096dc7580a320659e1a51f272742bf3a5aef0dd40608991cbd2324983f6",
+                        "size":  682
+                    },
+                    {
+                        "path":  "data/seed/users/users.v1.json",
+                        "source":  "HEAD",
+                        "sha256":  "191c5856dc759ca1ff814774b9f0d8983ef7a3323cb244edc55ba25cff7a6083",
+                        "size":  1357
+                    },
+                    {
+                        "path":  "deploy/backend.Dockerfile",
+                        "source":  "HEAD",
+                        "sha256":  "a639146d1f96a601ca529cbdde278c8d9bdb354eda0df552d05cd5d93d538586",
+                        "size":  439
+                    },
+                    {
+                        "path":  "deploy/compose.yaml",
+                        "source":  "HEAD",
+                        "sha256":  "c0b474708af0605de214682bf9c17587805b3fb822fad558040016b5a35864c2",
+                        "size":  1544
+                    },
+                    {
+                        "path":  "deploy/nginx.conf",
+                        "source":  "working-tree",
+                        "sha256":  "879e76a962e892c21e9b3a0daeb71b76d9b8b312b7004a69f5779cf8cc932e16",
+                        "size":  425
+                    },
+                    {
+                        "path":  "deploy/web.Dockerfile",
+                        "source":  "working-tree",
+                        "sha256":  "baf45d32d28d8df8394b447b703f841bf076ff510ddc7f830adfbaac1536a196",
+                        "size":  340
+                    },
+                    {
+                        "path":  "pyproject.toml",
+                        "source":  "HEAD",
+                        "sha256":  "8cafd8c54260bb9045f270c49b3a44f7ae8e9d144395661b6f839d4517fe29b3",
+                        "size":  954
+                    },
+                    {
+                        "path":  "README.md",
+                        "source":  "HEAD",
+                        "sha256":  "7e7dc5a2b20fd03057716fe1d7bc71815e443326eb62655bdc52c8190ff2ee6f",
+                        "size":  10232
+                    },
+                    {
+                        "path":  "src/customer_service/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "98dac6712b699ef8ff19692fdb5e9ff1c1956a564237f0243a70ba2703f5561e",
+                        "size":  47
+                    },
+                    {
+                        "path":  "src/customer_service/acceptance_reporting/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "32a254f6a8b1636e473b9bc57a83d3b899c51f580747cde75e5e7d451b5a36a8",
+                        "size":  51
+                    },
+                    {
+                        "path":  "src/customer_service/acceptance_reporting/runner.py",
+                        "source":  "HEAD",
+                        "sha256":  "9bace91ca8b4bf71cae860c954fca0891cbdc67ea9357a7aa09fd42a3618ccad",
+                        "size":  19255
+                    },
+                    {
+                        "path":  "src/customer_service/agent_acceptance/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "3c072c331a79f1c38166c27d96077805f9927c0d6bb4e099035b475855b0ebb2",
+                        "size":  58
+                    },
+                    {
+                        "path":  "src/customer_service/agent_acceptance/runner.py",
+                        "source":  "HEAD",
+                        "sha256":  "c08371da387c0dea12dde40df7f769950feff68e0c11316e59dfe66ff9899fb8",
+                        "size":  8989
+                    },
+                    {
+                        "path":  "src/customer_service/agent_http/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "d4d3710f6c56c097aa40f302c6d5d4d4d2ca09e7cfd7951e3f80ac8daa4efeb1",
+                        "size":  221
+                    },
+                    {
+                        "path":  "src/customer_service/agent_http/composition.py",
+                        "source":  "HEAD",
+                        "sha256":  "dbbf4fdeab8f60a2d4f32861b70a9fcfa863c4b2671d5ac10356799896750bd6",
+                        "size":  5707
+                    },
+                    {
+                        "path":  "src/customer_service/agent_http/evaluation.py",
+                        "source":  "HEAD",
+                        "sha256":  "41490324b15a5b11d221bdea28fc1670b99cf29ad7888582991724f03e9832be",
+                        "size":  12803
+                    },
+                    {
+                        "path":  "src/customer_service/agent_http/gateway.py",
+                        "source":  "HEAD",
+                        "sha256":  "ebb20a5415fed71258b18a462b0d1142d810e502648757bb5c361d7cde3e8929",
+                        "size":  5967
+                    },
+                    {
+                        "path":  "src/customer_service/agent_http/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "b08f3391a6dc9b2138e45c2e3dcc636b6340a50466f21d1746f76d4345d4146c",
+                        "size":  2428
+                    },
+                    {
+                        "path":  "src/customer_service/agent_http/service.py",
+                        "source":  "HEAD",
+                        "sha256":  "556ace0986c7466d996f96f01b466c9515e33fa52de54312ab6d07839358ebdb",
+                        "size":  19968
+                    },
+                    {
+                        "path":  "src/customer_service/agent_planning/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "b7bfa66182c58368477f65f9267ecfa6d7b35944394bf68289deee536638cf1a",
+                        "size":  81
+                    },
+                    {
+                        "path":  "src/customer_service/agent_planning/service.py",
+                        "source":  "HEAD",
+                        "sha256":  "4f026ba297272eeb7ada96bd7ffa3d52e6c2d3452c2771c2ab7fd63c797a6faf",
+                        "size":  4926
+                    },
+                    {
+                        "path":  "src/customer_service/agent_response/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "cbcefb4c413bca4ca5b105a386681df81c760977a27d7a98909c929186e6e075",
+                        "size":  74
+                    },
+                    {
+                        "path":  "src/customer_service/agent_response/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "43949258bbe5e29f1eafaa7efb12d0cb309708a400800c0cc53f8898c91e1c8c",
+                        "size":  2161
+                    },
+                    {
+                        "path":  "src/customer_service/agent_response/service.py",
+                        "source":  "HEAD",
+                        "sha256":  "f4fc784292062f1edb37ebe4660134351508101e0f2b2ae3c1ae725b664f4d7b",
+                        "size":  15614
+                    },
+                    {
+                        "path":  "src/customer_service/agent_runtime/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "6a6313238bb8bd65c5cc17a5a64efb9c28162fcbaaa6fed76a24be8a9a30b6b3",
+                        "size":  899
+                    },
+                    {
+                        "path":  "src/customer_service/agent_runtime/executor.py",
+                        "source":  "HEAD",
+                        "sha256":  "a5ba17ed1326197cb1a2b2876bcab3d8e00fd8b8cc0249d38fa1b1502978677c",
+                        "size":  21875
+                    },
+                    {
+                        "path":  "src/customer_service/agent_runtime/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "53cc3dc25412f15c8e024c678f1b3daeb0168e37d2e6d647bb755d6381cda282",
+                        "size":  6195
+                    },
+                    {
+                        "path":  "src/customer_service/agent_tools/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "eb4e065549ff0afe8851ecbbdd9c381febabe2abba1006ec6feaf6aa879e54e8",
+                        "size":  90
+                    },
+                    {
+                        "path":  "src/customer_service/agent_tools/evidence.py",
+                        "source":  "HEAD",
+                        "sha256":  "634cb1464c2e4cdde646603a4a6e6799162113d4b221a21be0ed7aeed0339ed2",
+                        "size":  8208
+                    },
+                    {
+                        "path":  "src/customer_service/agent_tools/execution.py",
+                        "source":  "HEAD",
+                        "sha256":  "1704ad8426a3157db988c23099bb19a6873efa5d337f3a87318eca26ee186cc6",
+                        "size":  26925
+                    },
+                    {
+                        "path":  "src/customer_service/agent_tools/registry.py",
+                        "source":  "HEAD",
+                        "sha256":  "b352afbb68e4204e6fac93fb3f496c695e9b76ceeb1f78339c911439c54ae9c2",
+                        "size":  3752
+                    },
+                    {
+                        "path":  "src/customer_service/agent_tools/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "036c4fa286fd4b10304774ae3d0a0d0d6a99a3e7dc0eab259c89b5d94d8a266b",
+                        "size":  6603
+                    },
+                    {
+                        "path":  "src/customer_service/agent_tools/validator.py",
+                        "source":  "HEAD",
+                        "sha256":  "54e69071aa69ae565ab38de071457e36493f58e9aef672b8e23dd8d050ca4e82",
+                        "size":  5216
+                    },
+                    {
+                        "path":  "src/customer_service/agent_workflow/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "84c1942f0d3aee84bff2c5085a12a8420f88bea6c675b8dc476ad1f01b3b473f",
+                        "size":  413
+                    },
+                    {
+                        "path":  "src/customer_service/agent_workflow/service.py",
+                        "source":  "HEAD",
+                        "sha256":  "8e937b37e376268db06a389a81a5ea14ba57599610c34c9638286866cb125dec",
+                        "size":  20384
+                    },
+                    {
+                        "path":  "src/customer_service/approvals/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "8d0e76b80d5bcb2f9d6ffbd9ebe707ef84240cf5fcb02590212b2e559decb0d9",
+                        "size":  74
+                    },
+                    {
+                        "path":  "src/customer_service/approvals/repository.py",
+                        "source":  "HEAD",
+                        "sha256":  "96db4558749ad1b329af6ad1e800d025ea8d3fba9dac542c884b3a12684309f5",
+                        "size":  5720
+                    },
+                    {
+                        "path":  "src/customer_service/approvals/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "33fb65039f9c0acd15b8b0efe7d488a5da02d235030956c3973c0d87a7b9421b",
+                        "size":  6080
+                    },
+                    {
+                        "path":  "src/customer_service/approvals/service.py",
+                        "source":  "HEAD",
+                        "sha256":  "ae2442759bfe7c9e6f581294e5b62d2228b0efd577e9092c6ee12fd5ddcf4391",
+                        "size":  9588
+                    },
+                    {
+                        "path":  "src/customer_service/collection/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "e81b110e2c8b1ebfaef98196ad08d3f68e3cc92f5f380cb555e15ed63ba48cf8",
+                        "size":  66
+                    },
+                    {
+                        "path":  "src/customer_service/collection/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "a9b512c06e019e151cfd1293e84e0e05d21c59d33b8016a9c93eabd8b85e3d90",
+                        "size":  2878
+                    },
+                    {
+                        "path":  "src/customer_service/collection/service.py",
+                        "source":  "HEAD",
+                        "sha256":  "c3cd23d6ef1d6be5c8852ad958f77a00b55f2e2c7f5b02047e861ab65241f2b9",
+                        "size":  7385
+                    },
+                    {
+                        "path":  "src/customer_service/eligibility/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "0536ce722345789c17ccb45f6e6a7e2de4096c9c06ce9665e735356e165825bc",
+                        "size":  399
+                    },
+                    {
+                        "path":  "src/customer_service/eligibility/config.py",
+                        "source":  "HEAD",
+                        "sha256":  "5a80aa630c699b2c989895319dc29a560890f0899e910e9fc8bf0981cfa0ae50",
+                        "size":  1119
+                    },
+                    {
+                        "path":  "src/customer_service/eligibility/engine.py",
+                        "source":  "HEAD",
+                        "sha256":  "2f68b454e78d63eb2baf5a18654fc2eaf0dded4e4a1414b8f4a88f9fa58d99d9",
+                        "size":  12588
+                    },
+                    {
+                        "path":  "src/customer_service/eligibility/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "6437226c4fd681a6ea3370d5a2dab9966ae31b26a17312bb66bd583bef60ac2e",
+                        "size":  4639
+                    },
+                    {
+                        "path":  "src/customer_service/infrastructure/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "7f1cca7024f9293fbc3504d987ffb3ed9b30581d5abea23c8c476ce4362fc8d1",
+                        "size":  31
+                    },
+                    {
+                        "path":  "src/customer_service/infrastructure/clients/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "64c56b387875b132f85b708bbaca7d1e208a7d41e6a7e66741df6cbeee67acaf",
+                        "size":  173
+                    },
+                    {
+                        "path":  "src/customer_service/infrastructure/clients/mock_business.py",
+                        "source":  "HEAD",
+                        "sha256":  "c30288e83f9f810dc6e989e98fe547f580fb362f9f122d1bb2986fc11052f80b",
+                        "size":  2310
+                    },
+                    {
+                        "path":  "src/customer_service/infrastructure/config/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "231ed49ea370e199470aa5b4ce69170ad7d1ea8ca24986705f7300c0eaefcbe9",
+                        "size":  39
+                    },
+                    {
+                        "path":  "src/customer_service/infrastructure/config/settings.py",
+                        "source":  "HEAD",
+                        "sha256":  "3e9c2c84267159f40f799e32452fc22b3e698818459d1ff557afbc40fc9b1557",
+                        "size":  1162
+                    },
+                    {
+                        "path":  "src/customer_service/interfaces/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "c919667e46243fdc1c5ef4744936c11b6cf421e073999fa251557ef03034a2df",
+                        "size":  37
+                    },
+                    {
+                        "path":  "src/customer_service/interfaces/api/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "7fb0355af9e890892fd82e3ca0ee92207040e5868b16fd8b2b17853b428b66f5",
+                        "size":  25
+                    },
+                    {
+                        "path":  "src/customer_service/interfaces/api/routes/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "5a9e4841101c06e2be45baa67ba4bafc28e1485fbaf7f94d00d6ea45553c7c94",
+                        "size":  19
+                    },
+                    {
+                        "path":  "src/customer_service/interfaces/api/routes/agent_modes.py",
+                        "source":  "HEAD",
+                        "sha256":  "9537eb883902476857a2446f0cb4fd7fa4a8ad4839400c294a36e8a1cc6f484a",
+                        "size":  520
+                    },
+                    {
+                        "path":  "src/customer_service/interfaces/api/routes/approvals.py",
+                        "source":  "HEAD",
+                        "sha256":  "39f3b8bcc63585ec3e8b1c8110accae0bf046950638349302139c8138409e338",
+                        "size":  1027
+                    },
+                    {
+                        "path":  "src/customer_service/interfaces/api/routes/conversations.py",
+                        "source":  "HEAD",
+                        "sha256":  "706b7c09e840e615b242250b710f6cf19dd8ab3c7dcde3dae87a7a43bd32d9f4",
+                        "size":  2518
+                    },
+                    {
+                        "path":  "src/customer_service/interfaces/api/routes/health.py",
+                        "source":  "HEAD",
+                        "sha256":  "3f24bab0397c2eac6b0410e38376ab121639a274413d844f39fc6cdf32dea9df",
+                        "size":  315
+                    },
+                    {
+                        "path":  "src/customer_service/local_server.py",
+                        "source":  "HEAD",
+                        "sha256":  "12d5169982d9c93f1d3448b43029892337ed84855a46fe987030d623ed627af7",
+                        "size":  1353
+                    },
+                    {
+                        "path":  "src/customer_service/main.py",
+                        "source":  "HEAD",
+                        "sha256":  "3b17d10d3b33f78736219d234e9d5865a3c6c024c041810a15340a5d55ac07e2",
+                        "size":  865
+                    },
+                    {
+                        "path":  "src/customer_service/model_gateway/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "f36840bc7b4a86ce4a6b5381cfd8906617695950a16af030faea3eb4d6d4424f",
+                        "size":  326
+                    },
+                    {
+                        "path":  "src/customer_service/model_gateway/deepseek.py",
+                        "source":  "HEAD",
+                        "sha256":  "849fab69c5aa1bfc681f1d85a431d2dbc719bc8ff66ef1d6be90789b4953cfed",
+                        "size":  10990
+                    },
+                    {
+                        "path":  "src/customer_service/model_gateway/evaluation.py",
+                        "source":  "HEAD",
+                        "sha256":  "8e132138f0101322140a032c066bc0c027a02090d33b71accd26816b103e3b03",
+                        "size":  7830
+                    },
+                    {
+                        "path":  "src/customer_service/model_gateway/fake.py",
+                        "source":  "HEAD",
+                        "sha256":  "c46af4105a9649de47bf515f6f457bda06c4605ac806dfb941c4d429d8c733c7",
+                        "size":  4077
+                    },
+                    {
+                        "path":  "src/customer_service/model_gateway/gateway.py",
+                        "source":  "HEAD",
+                        "sha256":  "76023d1497055c99ead1bd1f4578607a3582b6f7b2171c466cb6efede83a4e40",
+                        "size":  297
+                    },
+                    {
+                        "path":  "src/customer_service/model_gateway/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "0c7e9281d4d6aad667237b25ff18473e61cab6d825f6f786448c4b4545d5933f",
+                        "size":  5745
+                    },
+                    {
+                        "path":  "src/customer_service/orchestration/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "6243989c27684338585e62860aba1e66f754e19bbf8fdaf8c67c49acd9cb8ce0",
+                        "size":  52
+                    },
+                    {
+                        "path":  "src/customer_service/orchestration/high_risk_schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "a09223a05680ceda98bff2f6e476cef779c4594d83f5b4a7db45786352dc2160",
+                        "size":  1717
+                    },
+                    {
+                        "path":  "src/customer_service/orchestration/high_risk_service.py",
+                        "source":  "HEAD",
+                        "sha256":  "c9960bbd0cd8c785fe0008c299e476deb73c01480c340098b8aeb1c712b4d2e3",
+                        "size":  9983
+                    },
+                    {
+                        "path":  "src/customer_service/orchestration/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "3749a71559a9d06208588906ead79ce17fc57108acfbe1ec3783ecf5a5964dc3",
+                        "size":  2936
+                    },
+                    {
+                        "path":  "src/customer_service/orchestration/service.py",
+                        "source":  "HEAD",
+                        "sha256":  "09d57e21a4a005d92a27443eaa4c78eed5023d5b3952e2a9b606ff5259f5a311",
+                        "size":  9281
+                    },
+                    {
+                        "path":  "src/customer_service/rag/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "24d50ec483392de5e78fe98652bbec46a25478f0bf44f7f1594ac62309543713",
+                        "size":  406
+                    },
+                    {
+                        "path":  "src/customer_service/rag/catalog.py",
+                        "source":  "HEAD",
+                        "sha256":  "0eb34945c0f4b0701bd5c6dfb7d746e0585c1707b72c993ec6343ae005b935f8",
+                        "size":  4259
+                    },
+                    {
+                        "path":  "src/customer_service/rag/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "16e89f49951a6728c667613f8411dc0907c61b3259d0b525f89292fbd6d94cb9",
+                        "size":  4239
+                    },
+                    {
+                        "path":  "src/customer_service/rag/service.py",
+                        "source":  "HEAD",
+                        "sha256":  "9506d70cc868a5b71a886bdde2db8cf8437092c54ef57ee229892954c206b9fe",
+                        "size":  6968
+                    },
+                    {
+                        "path":  "src/customer_service/recovery/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "e35bf68ab7c788d6a6a0b529aa86d0440b368905364f28737bf70143c81d552c",
+                        "size":  64
+                    },
+                    {
+                        "path":  "src/customer_service/recovery/repository.py",
+                        "source":  "HEAD",
+                        "sha256":  "6dbf23cf836209ea9b3ac79dd5d4cb4a32077a553efd071692256b1b0eb60c9f",
+                        "size":  2515
+                    },
+                    {
+                        "path":  "src/customer_service/recovery/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "7de5e6621e382b9261ef1fbb89d285e60876e92fd927294861e4e7120255abf8",
+                        "size":  2795
+                    },
+                    {
+                        "path":  "src/customer_service/recovery/service.py",
+                        "source":  "HEAD",
+                        "sha256":  "55f53dfb6c19e67bbbcf4122db275af8bc0162ca85baa03724bdbf2983e62991",
+                        "size":  8236
+                    },
+                    {
+                        "path":  "src/customer_service/response_gate/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "e50cad6946e7bac46d678f963472726a3408f576983927e6ce0087810ce68b2a",
+                        "size":  56
+                    },
+                    {
+                        "path":  "src/customer_service/response_gate/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "315a28fb08fa2ad77eef47a29c9851704c8b5c5afe39ad8b2a99eebfba3c8755",
+                        "size":  3654
+                    },
+                    {
+                        "path":  "src/customer_service/response_gate/service.py",
+                        "source":  "HEAD",
+                        "sha256":  "c4f5e8fa5c1d9148d2f3b3769da8f11166b3fb6a836e5b13e86a446a18757718",
+                        "size":  8895
+                    },
+                    {
+                        "path":  "src/customer_service/routing/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "c6e1a8f4c9a4a64e009d4453a82dd80bef4a4144da97e5917d463e7b1c12bdbc",
+                        "size":  310
+                    },
+                    {
+                        "path":  "src/customer_service/routing/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "ced3e0a7e9903a590d377f938df20521f270db655a3369bf8aee77856f9bf7fb",
+                        "size":  5424
+                    },
+                    {
+                        "path":  "src/customer_service/routing/service.py",
+                        "source":  "HEAD",
+                        "sha256":  "25f8c7e2527e8a22a228027d4de0f4d5339c033f7f7ab76fe72df1b80cb8e6ae",
+                        "size":  5192
+                    },
+                    {
+                        "path":  "src/customer_service/service_cases/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "5a9c47ee17dde7d6fe958e081675b9896a94447127752909103823d33fbe87f0",
+                        "size":  546
+                    },
+                    {
+                        "path":  "src/customer_service/service_cases/repository.py",
+                        "source":  "HEAD",
+                        "sha256":  "a502fb800e590d97095a82e77fcfaa26ae367928150fd4c205aea03ed8d908b1",
+                        "size":  2970
+                    },
+                    {
+                        "path":  "src/customer_service/service_cases/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "65d26a5346a71c9beca8a84e265c7c1d54e6af329587221d1f978135c7753ad9",
+                        "size":  3546
+                    },
+                    {
+                        "path":  "src/customer_service/service_cases/service.py",
+                        "source":  "HEAD",
+                        "sha256":  "4d0a90095b081e5b2b7a4c514fdb4b5dcb6252f286798e8518fc96b73dc38f0d",
+                        "size":  9324
+                    },
+                    {
+                        "path":  "src/customer_service/tools/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "c89879ad96579a52505b331a7398de667a571ae35d1355d239752c66ac61816d",
+                        "size":  312
+                    },
+                    {
+                        "path":  "src/customer_service/tools/order_tool.py",
+                        "source":  "HEAD",
+                        "sha256":  "0e02fdd722a91751549c745213b8570ad8a2eab4620f0453cde4fa1eb15f7b32",
+                        "size":  2903
+                    },
+                    {
+                        "path":  "src/customer_service/tools/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "ce3d4bd82999e262f1e42c6e64c742fd73f225173ba0d82a98c5a08eec8c5ced",
+                        "size":  3009
+                    },
+                    {
+                        "path":  "src/customer_service/version.py",
+                        "source":  "HEAD",
+                        "sha256":  "4bc2e851505e8bd1be01ac5012656162f7af9c094b1a47ac4d774d675dbd4921",
+                        "size":  785
+                    },
+                    {
+                        "path":  "src/mock_business/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "b165e69700efad83a32aebdb7db39a6638cd39598c7ec951ea0e7d494e3d9b9e",
+                        "size":  38
+                    },
+                    {
+                        "path":  "src/mock_business/main.py",
+                        "source":  "HEAD",
+                        "sha256":  "48fad5679fd6a8733eec29801cdd40af9cf5a2ee583259bb7299e69b812140af",
+                        "size":  792
+                    },
+                    {
+                        "path":  "src/mock_business/repository.py",
+                        "source":  "HEAD",
+                        "sha256":  "7b87dcf3fb38c05d510e91b4a0db26d1d1102e50cce4bb8c1257c444d6883b9e",
+                        "size":  6904
+                    },
+                    {
+                        "path":  "src/mock_business/routes/__init__.py",
+                        "source":  "HEAD",
+                        "sha256":  "ecf1c82b6f41aad97cc193e6541fe7386966c6879c61f78516670bd0e19acecd",
+                        "size":  58
+                    },
+                    {
+                        "path":  "src/mock_business/routes/orders.py",
+                        "source":  "HEAD",
+                        "sha256":  "8042700af787991c4b6ca0f3988b92052361635b6e7b1ec4ea87871482638a08",
+                        "size":  1261
+                    },
+                    {
+                        "path":  "src/mock_business/schemas.py",
+                        "source":  "HEAD",
+                        "sha256":  "9d38766c5d03b9f49c06b3e5feaec5a8544fa62450e91fa0f9d18e219e8dcc13",
+                        "size":  2488
+                    },
+                    {
+                        "path":  "uv.lock",
+                        "source":  "HEAD",
+                        "sha256":  "2321ddb8fedfe381ae914c5b1d5c41bb3b502364398d735910116c29ab957fdf",
+                        "size":  113337
+                    },
+                    {
+                        "path":  "web/.prettierignore",
+                        "source":  "HEAD",
+                        "sha256":  "6357d8cfc2c6e49b5cba69b71938c004cda2c400db1ed8ee28e2242eb506fa7a",
+                        "size":  34
+                    },
+                    {
+                        "path":  "web/.prettierrc.json",
+                        "source":  "HEAD",
+                        "sha256":  "5340c75f6a19387e93ece9a7041cdf745653560d865397709ed7ebf3e025a824",
+                        "size":  70
+                    },
+                    {
+                        "path":  "web/eslint.config.js",
+                        "source":  "HEAD",
+                        "sha256":  "c0ecc8cd27ab5274738744f3fd3d03fd1ae4aec3bb476e55198156516a6eaad2",
+                        "size":  734
+                    },
+                    {
+                        "path":  "web/index.html",
+                        "source":  "HEAD",
+                        "sha256":  "ec7665a17e1ac82c89161d4ee47b510001eb0e623ec3d20c059165c9d1d2fdd5",
+                        "size":  294
+                    },
+                    {
+                        "path":  "web/package.json",
+                        "source":  "HEAD",
+                        "sha256":  "5ce3532b5a1bfe1bbbb694fd9e30439fd5e745fb8433b7aec2126553b1442918",
+                        "size":  1018
+                    },
+                    {
+                        "path":  "web/pnpm-lock.yaml",
+                        "source":  "HEAD",
+                        "sha256":  "72d65880be636e617702357a286cd6f6a932635378a51ac8aadc07cf86d19ef0",
+                        "size":  89104
+                    },
+                    {
+                        "path":  "web/src/App.css",
+                        "source":  "HEAD",
+                        "sha256":  "e6c8d8f3e0ceb1d72b05a3d38576075bf2291c3e06e30443f1538a46ea13ed6a",
+                        "size":  1189
+                    },
+                    {
+                        "path":  "web/src/App.test.tsx",
+                        "source":  "HEAD",
+                        "sha256":  "41410b3f3236acc0f7475d095ee787d2babc45d9dc7154de3579fbd045c8d11e",
+                        "size":  2796
+                    },
+                    {
+                        "path":  "web/src/App.tsx",
+                        "source":  "HEAD",
+                        "sha256":  "7683cf40bbd93fe1c336266cea5d48de5b5aa25660ef942585d7203a53c4d654",
+                        "size":  4995
+                    },
+                    {
+                        "path":  "web/src/ApprovalWorkbench.test.tsx",
+                        "source":  "HEAD",
+                        "sha256":  "f3524df08f997566087ce64ba7ffd98e0b10d5aec62dadc724c8a9bd1613aafb",
+                        "size":  6100
+                    },
+                    {
+                        "path":  "web/src/ApprovalWorkbench.tsx",
+                        "source":  "HEAD",
+                        "sha256":  "c391e12b5aa49ac046e0a6b9994258936a918426925575d77b06042ec1409963",
+                        "size":  8585
+                    },
+                    {
+                        "path":  "web/src/conversation.test.ts",
+                        "source":  "HEAD",
+                        "sha256":  "1b10ed9ca3778d1b1d1949e235ace33c86d70ee26695a70b811b7f634ec3477c",
+                        "size":  6028
+                    },
+                    {
+                        "path":  "web/src/conversation.ts",
+                        "source":  "HEAD",
+                        "sha256":  "5b11174ba5fd7c51b9f917cc103b9a7675de9c9fa13b4ea4eae1bf7eea724c88",
+                        "size":  6061
+                    },
+                    {
+                        "path":  "web/src/main.tsx",
+                        "source":  "HEAD",
+                        "sha256":  "f4dc93ad3ab4d49208e61ebc041e38eb52b037140c4a17d31387fdbe531ffcb1",
+                        "size":  297
+                    },
+                    {
+                        "path":  "web/src/vite-env.d.ts",
+                        "source":  "HEAD",
+                        "sha256":  "68937fe95088ffe97ac986edf4dcfb88cfe71df2e67db91ba03ee165779dedd7",
+                        "size":  23
+                    },
+                    {
+                        "path":  "web/tsconfig.app.json",
+                        "source":  "HEAD",
+                        "sha256":  "a7266d1c85fa6947c70073256d9a73e4c459e97b0b4ef24b5c48dcab498ef4c5",
+                        "size":  507
+                    },
+                    {
+                        "path":  "web/tsconfig.json",
+                        "source":  "HEAD",
+                        "sha256":  "770b4140bbb581e2dfd9ea9946ffc9c75a1d86ba7d2db5f77c83e37cbdf9d808",
+                        "size":  119
+                    },
+                    {
+                        "path":  "web/tsconfig.node.json",
+                        "source":  "HEAD",
+                        "sha256":  "b95aad2c7846cbfbb3743a21c851a66db39b2ab435bae24b773599b18bc4c8d0",
+                        "size":  274
+                    },
+                    {
+                        "path":  "web/vite.config.test.ts",
+                        "source":  "HEAD",
+                        "sha256":  "5581e64daeeabc65d064481cf53c60695a1c929dd2a4a7b798c7c6cde124e6c6",
+                        "size":  657
+                    },
+                    {
+                        "path":  "web/vite.config.ts",
+                        "source":  "HEAD",
+                        "sha256":  "e07d91c1910371c52bf2a5a32e66d2a7f43a0db8dbe60b73924a8dd89e67f4f3",
+                        "size":  872
+                    }
+                ]
+}

@@ -2,7 +2,7 @@
 
 ## 1. 唯一项目版本号
 
-`pyproject.toml` 的 `[project].version` 是 RACS 唯一项目版本号来源。当前工程版本为 PEP 440 格式的 `1.0.0rc2`。本地 annotated Tag `v1.0.0-rc.2` 已存在并指向提交 `da648b85c84ddd9b841fdbae709d00c9d9ac9664`；T-608 已通过 Reviewer 并将以普通提交收尾，本轮不移动 Tag。`v0.5.0` 仍是最近正式版本。
+`pyproject.toml` 的 `[project].version` 是 RACS 唯一项目版本号来源。当前候选版本为 PEP 440 格式的 `1.0.0rc2`，对应本地 annotated Tag `v1.0.0-rc.2`；T-608 已通过 Reviewer，`v0.5.0` 仍是最近正式版本。
 
 - Web 是项目内部私有包，不维护独立项目版本号。
 - Changelog、任务报告、Git 标签和远程 Release 只引用该版本，不成为新的版本源。
@@ -23,20 +23,20 @@
 | `v0.4.0` | T-201～T-204 | AI 售后流程与模型适配 | 已发布：阶段三 Reviewer PASS，2026-07-27 |
 | `v0.5.0` | T-301～T-304 | 人工协作与恢复 | 已发布：阶段四 Reviewer PASS，2026-07-27 |
 | `v1.0.0` | T-401～T-404 | 完整 MVP | 最近正式版本仍为 `v0.5.0`；尚未授权正式发布 |
-| `v1.0.0-rc.2` | T-601～T-608 及已审查 Docker 交付修复 | 完整 Agent MVP、消费者 Agent 接入与候选交付验证 | T-608 Reviewer PASS；本地 Tag 仍指向 T-608 前基线，本轮仅普通提交 |
+| `v1.0.0-rc.2` | T-601～T-608 及已审查 Docker 交付修复 | 完整 Agent MVP、消费者 Agent 接入与候选交付验证 | 全部任务与 Docker 闭环均有 Reviewer PASS 和实际记录；本地候选发布，未推送或正式发布 |
 
 ### v1.0.0-rc.2 候选版与正式版晋级
 
 T-401～T-404 已完成并通过 Reviewer；Python、前端、确定性 Fake、DeepSeek 真实模型评测链路以及 `uv.lock` 检查已有实际证据。DeepSeek 固定评测为 10/11，保留 1 个已记录失败案例，不能写成全量用例通过。
 
-2026-08-11 已在全新纯 ASCII 副本完成 Docker Desktop/Engine、Compose、Buildx、镜像拉取、构建、启动、健康检查、服务连通、日志和清理闭环。该验证发现并修复后端镜像遗漏运行时 `config/`/`data/` 以及 Windows 宿主端口冲突；修复后 PostgreSQL、两个 API 与 Web 均通过实际检查，`down --volumes --remove-orphans` 后容器、网络和命名卷无残留。该记录执行时项目版本为 `1.0.0rc1`；`v1.0.0-rc.2` 更新了作为镜像构建输入的 `pyproject.toml` 和 `uv.lock`，因此该记录可证明交付修复和闭环可行，但不替代正式 `v1.0.0` 对正式提交的复跑。完整实际证据见 [Docker 发布验证记录](release-validation-docker-2026-08-11.md)。
+2026-08-11 已在全新纯 ASCII 副本完成 Docker Desktop/Engine、Compose、Buildx、镜像拉取、构建、启动、健康检查、服务连通、日志和清理闭环。该验证先修复后端镜像遗漏运行时 `config/`/`data` 及 Windows 宿主端口冲突，随后以提交 `5b24609` 为原始字节基线、以逐文件 SHA-256 manifest 绑定 `deploy/web.Dockerfile` 和 `deploy/nginx.conf` 的 nginx 修复。修复后 PostgreSQL、两个 API 与 Web 均健康；Web 同源 `/api/v1/agent/modes`、Web→API、API→Mock/PostgreSQL、Fake 政策/低风险/高风险审批恢复均通过，`down --volumes --remove-orphans` 后容器、网络和命名卷无残留。DeepSeek Docker 路径因 Compose 未注入凭据而未执行，未计为通过。完整实际证据见 [Docker 发布验证记录](release-validation-docker-2026-08-11.md) 与 [post-fix 输入 manifest](evaluations/docker-compose-5b24609-post-fix-manifest.json)。
 
 晋级正式 `v1.0.0` 必须同时满足：
 
-1. 确认正式发布提交未改变已验证的 Docker 交付配置；如改变 Dockerfile、Compose、镜像输入、运行时配置或数据，则在受控环境重新完成 Compose 闭环。
+1. 以正式发布提交重跑 Docker Compose 闭环；只要 Dockerfile、Compose、镜像输入、运行时配置或数据发生变化，既有验证记录不得替代该复跑。
 2. 重新运行 `uv lock --check`、Python、前端、Fake/真实模型专项、版本和文档一致性门禁。
-3. T-608 已通过 Reviewer，且真实 DeepSeek HTTP 代表路径已有实际、安全、脱敏的 4/4 通过证据；缺少 Key、供应商不可用、网络失败或限流仍不能记为通过。
-4. Release Manager 核对计划 `v1.0.0-rc.2` 的提交、Tag、Docker 记录与测试证据，且项目所有者明确授权正式发布。
+3. 真实 DeepSeek HTTP 代表路径保持脱敏且可追溯；缺少 Key、供应商不可用、网络失败或限流仍必须记为 `SKIPPED` 或 `BLOCKED`，不得记为通过。
+4. Release Manager 核对正式提交、Docker 记录与测试证据，且项目所有者明确授权正式发布、正式 Tag 和任何远程操作。
 
 “未发布”只说明发布证据不足，不否定 `TASKS.md` 中已有的任务验收记录。
 
@@ -48,7 +48,7 @@ T-601～T-607 已通过各任务 Reviewer 审查及阶段七出口审查。当�
 
 版本策略建议（本轮不执行）：
 
-1. 当前工程版本为 PEP 440 `1.0.0rc2`；本地 Git Tag `v1.0.0-rc.2` 已存在，但只指向 T-608 前基线。T-608 最终真实 DeepSeek HTTP 报告在同一工作区 digest 下为 4/4 `PASSED`，并已获 Reviewer PASS；本轮仍只创建普通提交，不移动候选 Tag。
+1. 当前候选版本为 PEP 440 `1.0.0rc2` / Git Tag `v1.0.0-rc.2`，承载 T-601～T-608 与已审查 Docker 修复。
 2. 满足本节正式晋级条件并获得项目所有者授权后，才建议创建正式 `v1.0.0`。
 3. 正式 Tag、推送和远程 Release 均须项目所有者另行明确授权。
 

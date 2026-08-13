@@ -14,7 +14,7 @@ def test_t608_implementation_and_release_status_are_consistent() -> None:
     report = (ROOT / "docs/task-reports/T-608.md").read_text(encoding="utf-8")
     combined = "\n".join((readme, releases, tasks, report))
 
-    assert "T-608 均已通过 Reviewer" in readme
+    assert "T-601～T-608 与 Docker 发布验证闭环均已通过 Reviewer" in readme
     assert "T-608 已通过 Reviewer" in releases
     assert "Reviewer 最终审查 `PASS`" in tasks
     assert "Reviewer 最终审查 `PASS`" in report
@@ -22,7 +22,7 @@ def test_t608_implementation_and_release_status_are_consistent() -> None:
     assert "4/4 `PASSED`" in combined
     assert "BLOCKED: 3/4" in report
     assert "BLOCKED: 0/4" in report
-    assert "当前不修改项目版本、不创建 Tag、不推送或发布" in tasks
+    assert "当前候选版本为 `1.0.0rc2` / `v1.0.0-rc.2`" in tasks
     assert "实现待开始" not in releases
     assert "本任务尚未实现" not in tasks
     assert "T-608 仅设计审查已通过，尚未实现或验收" not in readme
@@ -44,7 +44,7 @@ def test_final_deepseek_report_is_passed_and_does_not_expose_sensitive_data() ->
     assert "4/4 `PASSED`" in report
 
 
-def test_existing_release_tag_is_not_described_as_absent_or_current_t608_evidence() -> None:
+def test_candidate_release_tag_is_described_as_current_t608_evidence() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     releases = (ROOT / "docs/RELEASES.md").read_text(encoding="utf-8")
     tasks = (ROOT / "TASKS.md").read_text(encoding="utf-8")
@@ -60,4 +60,5 @@ def test_existing_release_tag_is_not_described_as_absent_or_current_t608_evidenc
 
     assert "v1.0.0-rc.2" in tags
     assert "Tag 尚未创建" not in combined
-    assert "T-608 之前" in combined
+    assert "T-608 已通过 Reviewer `PASS`" in combined
+    assert "Docker post-fix 闭环获 Reviewer `PASS`" in combined

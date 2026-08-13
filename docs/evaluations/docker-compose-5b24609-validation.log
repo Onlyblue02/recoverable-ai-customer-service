@@ -1,0 +1,56 @@
+RACS Docker Compose validation summary
+executed_at_local=2026-08-11 Asia/Hong_Kong
+git_revision=5b24609fba10ce9a189c06f8b0da87efda0082ea
+project=racsverify5b24609
+ascii_copy=C:\temp\racs-docker-verify-5b24609
+commit_input_files=141
+logical_git_blob_mismatches=0
+sha256_manifest_digest=9f874973e8db0d497d5327f07b376599685b0fb4b6924c7329fd895f952f20c9
+
+docker_client=29.5.3
+docker_engine=29.5.3
+docker_desktop=4.79.0 (230596)
+docker_compose=v5.1.4
+docker_buildx=v0.34.1-desktop.1
+
+compose_config_exit=0
+compose_up_build_exit=0
+postgres_health=healthy
+racs_api_health=healthy
+mock_business_api_health=healthy
+web_http_status=200
+web_agent_modes_status=200
+web_to_racs_api_status=200
+racs_api_to_mock_business_api_status=200
+racs_api_to_postgres_tcp=connected
+
+initial_web_agent_modes_status=404
+project_fix=deploy/nginx.conf production /api proxy copied by deploy/web.Dockerfile
+rebuild_exit=0
+
+fake_policy_status=completed
+fake_policy_reason=RESPONSE_GATE_ALLOWED
+fake_policy_citations=1
+fake_low_risk_status=completed
+fake_low_risk_reason=RESPONSE_GATE_ALLOWED
+fake_low_risk_service_case=SC-SIM-001
+fake_high_risk_before=waiting_approval
+fake_high_risk_before_service_case=none
+fake_high_risk_decision=approved
+fake_high_risk_after=completed
+fake_high_risk_reason=RESPONSE_GATE_ALLOWED
+fake_high_risk_service_case=SC-SIM-002
+
+deepseek_configured=false
+deepseek_selectable=false
+deepseek_http_evaluation=NOT_EXECUTED
+
+compose_down_volumes_remove_orphans_exit=0
+compose_ps_after_down_exit=0
+project_containers_remaining=0
+project_networks_remaining=0
+project_volumes_remaining=0
+volume_inspect_exit=1
+volume_inspect_result=no such volume
+validation_images_remaining=0
+other_container_ids_unchanged=true
