@@ -64,6 +64,16 @@ class PublicCitation(BaseModel):
     source: str
 
 
+class PublicOrderEvidence(BaseModel):
+    """Minimal order provenance derived only from a Gate-approved order fact."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    order_id: str
+    confirmed_status: str
+    source: Literal["controlled_authorized_order_record"] = "controlled_authorized_order_record"
+
+
 class PublicMessage(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -88,6 +98,7 @@ class AgentConversationResponse(BaseModel):
     message: str
     action_hint: str
     citations: tuple[PublicCitation, ...] = ()
+    order_evidence: PublicOrderEvidence | None = None
     service_case_id: str | None = None
     messages: tuple[PublicMessage, ...] = ()
 

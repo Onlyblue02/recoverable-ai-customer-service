@@ -14,6 +14,7 @@ from customer_service.agent_http.schemas import (
     PublicCitation,
     PublicMessage,
     PublicModelStatus,
+    PublicOrderEvidence,
 )
 from customer_service.agent_workflow import (
     AgentWorkflowOutcome,
@@ -339,6 +340,14 @@ class AgentConversationService:
         model_status = self._model_status(session.mode, result)
         public_message = result.public_response or self._safe_message(result.outcome, model_status)
         citations = self._citations(result.policy_ids)
+        order_evidence = (
+            None
+            if result.authorized_order is None
+            else PublicOrderEvidence(
+                order_id=result.authorized_order.order_id,
+                confirmed_status=result.authorized_order.status,
+            )
+        )
         if original_message:
             session.history.append(
                 PublicMessage(
@@ -364,6 +373,7 @@ class AgentConversationService:
             action_hint=self._action_hint(result.outcome, model_status),
             messages=tuple(session.history),
             citations=citations,
+            order_evidence=order_evidence,
             service_case_id=match.group(1) if match else None,
         )
 
@@ -474,6 +484,7 @@ class AgentConversationService:
         action_hint: str,
         messages: tuple[PublicMessage, ...],
         citations: tuple[PublicCitation, ...] = (),
+        order_evidence: PublicOrderEvidence | None = None,
         service_case_id: str | None = None,
     ) -> AgentConversationResponse:
         return AgentConversationResponse(
@@ -488,6 +499,7 @@ class AgentConversationService:
             message=message,
             action_hint=action_hint,
             citations=citations,
+            order_evidence=order_evidence,
             service_case_id=service_case_id,
             messages=messages,
         )

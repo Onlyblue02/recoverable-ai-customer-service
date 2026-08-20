@@ -147,7 +147,7 @@ def _executed(
 def _payload(
     evidence_id: str,
     *,
-    text: str = "订单 ORD-1 当前状态为 delivered。",
+    text: str = "依据已授权订单查询结果，订单 ORD-1 当前状态为 delivered。",
     claim: str = "order",
 ) -> dict[str, object]:
     return {
@@ -239,7 +239,7 @@ def test_valid_current_turn_order_evidence_is_allowed_by_gate() -> None:
 
     assert result.outcome is AgentResponseOutcome.ALLOWED
     assert result.state.status is AgentStatus.COMPLETED
-    assert result.public_response == "订单 ORD-1 当前状态为 delivered。"
+    assert result.public_response == ("依据已授权订单查询结果，订单 ORD-1 当前状态为 delivered。")
     assert result.gate is not None and result.gate.action is ResponseGateAction.ALLOW
     assert "查询订单" not in result.audit.model_dump_json()
 

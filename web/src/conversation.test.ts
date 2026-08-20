@@ -87,12 +87,18 @@ describe("HttpConversationClient", () => {
         }
         return response({
           ...welcome,
-          message: "已找到订单。",
+          message:
+            "依据已授权订单查询结果，订单 ORD-NORMAL-001 当前状态为 delivered。",
           order: {
             order_id: "ORD-NORMAL-001",
             status: "delivered",
             total_amount: "129.00",
             currency: "CNY",
+          },
+          order_evidence: {
+            order_id: "ORD-NORMAL-001",
+            confirmed_status: "delivered",
+            source: "controlled_authorized_order_record",
           },
           messages: welcome.messages,
         })
@@ -112,6 +118,11 @@ describe("HttpConversationClient", () => {
       status: "delivered",
       totalAmount: "129.00",
       currency: "CNY",
+    })
+    expect(order.orderEvidence).toEqual({
+      orderId: "ORD-NORMAL-001",
+      confirmedStatus: "delivered",
+      source: "controlled_authorized_order_record",
     })
   })
 

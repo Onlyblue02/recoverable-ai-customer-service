@@ -8,6 +8,11 @@ export type ConversationStatus =
   | "failed_safe"
 
 export type Citation = { policyId: string; title: string; source: string }
+export type OrderEvidence = {
+  orderId: string
+  confirmedStatus: string
+  source: "controlled_authorized_order_record"
+}
 export type Message = {
   id: string
   role: "user" | "assistant"
@@ -29,6 +34,7 @@ export type ConversationSnapshot = {
   messages: Message[]
   actionHint: string
   serviceCaseId?: string
+  orderEvidence?: OrderEvidence
   order?: {
     orderId: string
     status: string
@@ -53,6 +59,11 @@ type ServerResponse = {
   status?: string
   action_hint: string
   service_case_id: string | null
+  order_evidence?: {
+    order_id: string
+    confirmed_status: string
+    source: "controlled_authorized_order_record"
+  } | null
   order?: {
     order_id: string
     status: string
@@ -158,6 +169,13 @@ export class HttpConversationClient implements ConversationClient {
       reasonCode: result.reason_code ?? "LEGACY_RESPONSE",
       actionHint: result.action_hint,
       serviceCaseId: result.service_case_id ?? undefined,
+      orderEvidence: result.order_evidence
+        ? {
+            orderId: result.order_evidence.order_id,
+            confirmedStatus: result.order_evidence.confirmed_status,
+            source: result.order_evidence.source,
+          }
+        : undefined,
       order: result.order
         ? {
             orderId: result.order.order_id,

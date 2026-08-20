@@ -86,7 +86,10 @@ class ResponseGateService:
         if draft.claims_policy_conclusion:
             fragments.append("已找到与本次问题相关的当前政策证据。")
         if draft.claims_order_facts and draft.order is not None:
-            fragments.append(f"订单 {draft.order.order_id} 当前状态为 {draft.order.status}。")
+            fragments.append(
+                "依据已授权订单查询结果，"
+                f"订单 {draft.order.order_id} 当前状态为 {draft.order.status}。"
+            )
         if draft.claims_eligibility and draft.eligibility is not None:
             eligibility_messages = {
                 "eligible": "该商品符合当前退货资格要求。",

@@ -86,4 +86,29 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: "发送中…" })).toBeDisabled()
     client.resolve?.(collecting)
   })
+
+  it("renders only server-projected authorized order evidence", async () => {
+    render(
+      <App
+        client={
+          new StubClient({
+            ...collecting,
+            status: "completed",
+            orderEvidence: {
+              orderId: "ORD-NORMAL-001",
+              confirmedStatus: "delivered",
+              source: "controlled_authorized_order_record",
+            },
+          })
+        }
+      />,
+    )
+
+    expect(await screen.findByLabelText("订单依据")).toHaveTextContent(
+      "订单 ORD-NORMAL-001",
+    )
+    expect(screen.getByLabelText("订单依据")).toHaveTextContent(
+      "来源：受控的已授权订单记录",
+    )
+  })
 })

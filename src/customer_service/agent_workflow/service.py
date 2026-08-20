@@ -43,6 +43,7 @@ from customer_service.response_gate.schemas import ResponseGateAction
 from customer_service.response_gate.service import ResponseGateService
 from customer_service.service_cases.service import ServiceCaseService
 from customer_service.tools.order_tool import OrderQueryService
+from customer_service.tools.schemas import AuthorizedOrderFacts
 
 
 class AgentWorkflowOutcome(StrEnum):
@@ -102,6 +103,7 @@ class AgentWorkflowResult(BaseModel):
     public_response: str | None = None
     evidence_ids: tuple[str, ...] = ()
     policy_ids: tuple[str, ...] = ()
+    authorized_order: AuthorizedOrderFacts | None = None
     approval_id: str | None = None
     gate_action: ResponseGateAction | None = None
     gate_reasons: tuple[str, ...] = ()
@@ -423,6 +425,11 @@ class AgentWorkflowService:
                     for field in record.public_fields
                     if field.name == "policy_id"
                 )
+            ),
+            authorized_order=(
+                None
+                if response.gate is None or response.gate.response is None
+                else response.gate.response.order
             ),
             gate_action=None if response.gate is None else response.gate.action,
             gate_reasons=(

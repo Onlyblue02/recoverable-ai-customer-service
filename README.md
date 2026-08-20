@@ -1,10 +1,10 @@
 # Recoverable AI Customer Service
 
-RACS 是一个可恢复式 AI 售后客服项目。阶段一 `v0.2.0`、阶段二 `v0.3.0`、阶段三 `v0.4.0` 和阶段四 `v0.5.0` 已按 Reviewer 门禁发布；`v0.5.0` 仍是最近正式版本。T-401～T-404、T-601～T-608 与 Docker 发布验证闭环均已通过 Reviewer；当前本地候选版本为 `v1.0.0-rc.3`（`1.0.0rc3`）。既有 `v1.0.0-rc.2` 标签保留不移动；该候选未推送，也不是正式 `v1.0.0`。
+RACS 是一个可恢复式 AI 售后客服项目。阶段一 `v0.2.0`、阶段二 `v0.3.0`、阶段三 `v0.4.0` 和阶段四 `v0.5.0` 已按 Reviewer 门禁发布；`v0.5.0` 仍是最近正式版本。T-401～T-404、T-601～T-608 与 Docker 发布验证闭环均已通过 Reviewer；订单可信依据展示修复已获 Reviewer PASS。当前本地候选版本为 `v1.0.0-rc.4`（`1.0.0rc4`）；既有 rc.2、rc.3 标签保留不移动。该候选未推送，也不是正式 `v1.0.0`。
 
 ## 项目版本与发布
 
-项目唯一版本号来源是 `pyproject.toml` 的 `[project].version`，当前候选版本为 PEP 440 格式的 `1.0.0rc3`，对应本地 annotated Tag `v1.0.0-rc.3`；既有 `v1.0.0-rc.2` 保留为历史候选标签。阶段版本规划、发布门禁与一致性检查见 `docs/RELEASES.md`；版本变化见 `docs/CHANGELOG.md`；任务验收证据按 `docs/task-reports/T-xxx.md` 维护。
+项目唯一版本号来源是 `pyproject.toml` 的 `[project].version`，当前候选版本为 PEP 440 格式的 `1.0.0rc4`，对应本地 annotated Tag `v1.0.0-rc.4`；既有 rc.2、rc.3 保留为历史候选标签。阶段版本规划、发布门禁与一致性检查见 `docs/RELEASES.md`；版本变化见 `docs/CHANGELOG.md`；任务验收证据按 `docs/task-reports/T-xxx.md` 维护。
 
 阶段一产品基线已通过 Reviewer 复审，正式版本为 `v0.2.0`，允许进入 T-101。该版本只证明 T-000～T-002 的工程、合成数据和固定验收合同，不代表 T-101 及后续业务能力已经实现。
 
@@ -76,7 +76,7 @@ T-601～T-607 已通过单任务 Reviewer 审查和阶段七出口审查。当�
 - 订单权限与退货资格由确定性业务服务裁决；高风险操作必须经过人工审批与受控恢复；Response Gate 对最终事实、证据和公开文本作最后发送裁决。
 - 当前是进程内合成 Agent MVP，不是通用 Agent 平台或生产 API；不提供生产持久化、跨进程恢复、生产认证、SLA 或真实退款执行。T-701～T-706 未实现，仅预留给后续生产化增强。
 
-当前候选版本为 `1.0.0rc3` / `v1.0.0-rc.3`；`v1.0.0-rc.2` 保留不移动。T-608 已获 Reviewer PASS；Docker 复验已覆盖生产 Web 同源 Agent API 代理、四服务健康、关键连通性、Fake 业务路径、日志与清理。历史 `BLOCKED 3/4` 与 `BLOCKED 0/4` 运行仍作为历史事实保留，最终真实 DeepSeek HTTP 4/4 记录以同一工作区 digest 绑定且不包含 Key、推理链或敏感内部数据。
+当前候选版本为 `1.0.0rc4` / `v1.0.0-rc.4`；rc.2、rc.3 标签保留不移动。订单查询回复会显示由 Gate 放行的最小依据：订单号、已确认状态和“受控的已授权订单记录”来源；不公开内部 permit、Evidence ID、原始工具参数或推理链。T-608 已获 Reviewer PASS；Docker 复验已覆盖生产 Web 同源 Agent API 代理、四服务健康、关键连通性、Fake 业务路径、日志与清理。历史 `BLOCKED 3/4` 与 `BLOCKED 0/4` 运行仍作为历史事实保留，最终真实 DeepSeek HTTP 4/4 记录以同一工作区 digest 绑定且不包含 Key、推理链或敏感内部数据。
 
 ## 合成数据基线
 

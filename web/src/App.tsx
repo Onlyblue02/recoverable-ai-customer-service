@@ -107,6 +107,16 @@ export function App({
       {snapshot?.status === "completed" && snapshot.serviceCaseId ? (
         <p className="service-case">模拟申请编号：{snapshot.serviceCaseId}</p>
       ) : null}
+      {snapshot?.orderEvidence ? (
+        <aside className="order-evidence" aria-label="订单依据">
+          <strong>订单依据</strong>
+          <p>
+            订单 {snapshot.orderEvidence.orderId}；已确认状态：
+            {snapshot.orderEvidence.confirmedStatus}
+            ；来源：受控的已授权订单记录。
+          </p>
+        </aside>
+      ) : null}
       <form onSubmit={submit} className="composer">
         <label htmlFor="message">输入消息</label>
         <textarea

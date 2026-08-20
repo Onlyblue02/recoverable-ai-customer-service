@@ -2,15 +2,29 @@
 
 本文记录 RACS 已完成且有证据支持的项目变更。版本规划见 [RELEASES.md](RELEASES.md)。
 
+## [1.0.0-rc.4] - 2026-08-20
+
+### Changed
+
+- 创建新的本地候选 `v1.0.0-rc.4`（项目版本 `1.0.0rc4`），承载已经通过 Reviewer 的 T-601～T-608、Docker 修复、post-fix manifest v2、Docker 验证记录及订单可信依据展示修复。既有 rc.2、rc.3 标签保留不移动；未推送远程，未创建正式 `v1.0.0` Tag 或远程 Release。
+
+### Fixed
+
+- RC.3 用户验收发现订单结论缺少用户可见的可信依据；修复已获 Reviewer `PASS`。Response Gate 的确定性订单结论明确来自已授权订单查询，HTTP 仅投影 Gate 已放行的最小订单依据（订单号、已确认状态和受控订单记录来源），页面据此展示而不自行构造证据；内部 permit、Evidence ID、原始工具参数和推理链不公开，缺失、伪造或 Gate 拒绝的订单事实仍安全降级且不产生公开依据。
+
+### Validation
+
+- 2026-08-20 最终门禁：`uv lock --check` 通过；订单依据 HTTP/Agent/文档专项 32 passed，Python 全仓 404 passed、1 skipped；Ruff format/check、mypy、前端 Prettier/ESLint/Vitest（18 passed）和生产构建、`git diff --check` 均通过。Docker 运行闭环继续引用已获 Reviewer `PASS` 的、以 manifest v2 绑定的实际验证记录；Compose 中未注入 DeepSeek 凭据，因此真实模型 Docker 路径未执行且不计通过或失败。保留 1 条既有 Starlette TestClient 弃用警告。
+
 ## [1.0.0-rc.3] - 2026-08-20
 
 ### Changed
 
-- 创建新的本地候选 `v1.0.0-rc.3`（项目版本 `1.0.0rc3`），承载已经通过 Reviewer 的 T-601～T-608、Docker 修复、post-fix manifest v2 与 Docker 验证记录。既有 `v1.0.0-rc.2` 标签保留不移动；未推送远程，未创建正式 `v1.0.0` Tag 或远程 Release。
+- 创建本地候选 `v1.0.0-rc.3`（项目版本 `1.0.0rc3`），承载已经通过 Reviewer 的 T-601～T-608、Docker 修复、post-fix manifest v2 与 Docker 验证记录。既有 `v1.0.0-rc.2` 标签保留不移动；未推送远程，未创建正式 `v1.0.0` Tag 或远程 Release。
 
 ### Validation
 
-- 2026-08-20 最终门禁：`uv lock --check` 通过；Python 全仓 401 passed、1 skipped；rc.3 文档一致性专项 7 passed；Ruff format/check、mypy、前端 Prettier/ESLint/Vitest 和生产构建、`git diff --check` 均通过。Docker 运行闭环继续引用已获 Reviewer `PASS` 的、以 manifest v2 绑定的实际验证记录；Compose 中未注入 DeepSeek 凭据，因此真实模型 Docker 路径未执行且不计通过或失败。保留 1 条既有 Starlette TestClient 弃用警告。
+- `uv lock --check` 通过；Python 全仓 401 passed、1 skipped；rc.3 文档一致性专项 7 passed；Ruff format/check、mypy、前端 Prettier/ESLint/Vitest 和生产构建、`git diff --check` 均通过。Docker 运行闭环引用已获 Reviewer `PASS` 的 manifest v2 实测记录；Compose 中未注入 DeepSeek 凭据，真实模型 Docker 路径未执行且不计通过或失败。
 
 ## [1.0.0-rc.2] - 2026-08-13
 

@@ -82,7 +82,7 @@ class DeepSeekModelGateway:
                 "不得遗漏已有的 completion 或 approval 事实，也不得自行添加事实。"
                 "text 必须按声明顺序只拼接以下固定句子，不得改写或添加连接词："
                 "policy：已找到与本次问题相关的当前政策证据。；"
-                "order：订单 {order_id} 当前状态为 delivered。；"
+                "order：依据已授权订单查询结果，订单 {order_id} 当前状态为 delivered。；"
                 "eligibility 按 eligibility_code 使用：eligible=该商品符合当前退货资格要求。；"
                 "ineligible=该商品不符合当前退货资格要求。；"
                 "requires_approval=该退货申请需要人工审批。；"

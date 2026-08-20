@@ -56,6 +56,59 @@ def test_fake_api_is_default_deterministic_and_returns_only_public_contract() ->
     assert forbidden.isdisjoint(str(first).lower())
 
 
+def test_fake_order_basis_is_gate_approved_and_publicly_traceable() -> None:
+    client = TestClient(create_app())
+    conversation_id = _new(client)["conversation_id"]
+    result = _send(client, conversation_id, "请帮我查询订单 ORD-NORMAL-001，并说明依据。")
+
+    assert result["agent_status"] == "completed"
+    assert "依据已授权订单查询结果" in result["message"]
+    assert result["order_evidence"] == {
+        "order_id": "ORD-NORMAL-001",
+        "confirmed_status": "delivered",
+        "source": "controlled_authorized_order_record",
+    }
+
+
+def test_missing_or_unauthorized_order_never_exposes_order_basis() -> None:
+    client = TestClient(create_app())
+    conversation_id = _new(client)["conversation_id"]
+    result = _send(client, conversation_id, "请查询订单 ORD-NOT-AUTHORIZED，并说明依据。")
+
+    assert result["agent_status"] in {"clarify", "escalate", "failed_safe"}
+    assert result["order_evidence"] is None
+    assert "delivered" not in result["message"]
+
+
+def test_deepseek_order_basis_uses_the_same_controlled_gate_projection(
+    monkeypatch: Any,
+) -> None:
+    from customer_service.agent_http.composition import build_agent_application
+    from customer_service.agent_http.gateway import DeterministicAgentGateway
+    from customer_service.model_gateway.deepseek import DeepSeekModelGateway
+
+    deterministic = DeterministicAgentGateway()
+
+    def controlled(self: DeepSeekModelGateway, request: Any) -> ModelResponse:
+        return deterministic.generate(request)
+
+    monkeypatch.setattr(DeepSeekModelGateway, "generate", controlled)
+    app = create_app()
+    app.state.agent_application = build_agent_application(
+        deepseek_settings=DeepSeekSettings(
+            deepseek_api_key=SecretStr("test-only-key"), deepseek_model="deepseek-test"
+        )
+    )
+    client = TestClient(app)
+    conversation_id = _new(client, "deepseek")["conversation_id"]
+    result = _send(client, conversation_id, "请查询订单 ORD-NORMAL-001，并说明依据。")
+
+    assert result["effective_mode"] == "deepseek"
+    assert result["model_status"] == "succeeded"
+    assert result["order_evidence"]["order_id"] == "ORD-NORMAL-001"
+    assert result["order_evidence"]["source"] == "controlled_authorized_order_record"
+
+
 def test_modes_and_unconfigured_deepseek_are_explicit_without_silent_fallback(
     monkeypatch: Any,
 ) -> None:

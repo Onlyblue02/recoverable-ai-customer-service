@@ -74,7 +74,9 @@ class DeterministicAgentGateway:
         if "order.get_authorized" in evidence:
             evidence_id, payload = evidence["order.get_authorized"]
             fields = {item["name"]: item["value"] for item in payload["public_fields"]}
-            fragments.append(f"订单 {fields['order_id']} 当前状态为 delivered。")
+            fragments.append(
+                f"依据已授权订单查询结果，订单 {fields['order_id']} 当前状态为 delivered。"
+            )
             claims.append({"claim_type": "order", "evidence_ids": [evidence_id]})
         if "return.evaluate" in evidence:
             evidence_id, payload = evidence["return.evaluate"]
