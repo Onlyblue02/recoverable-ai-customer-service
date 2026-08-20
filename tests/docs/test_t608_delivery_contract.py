@@ -22,7 +22,7 @@ def test_t608_implementation_and_release_status_are_consistent() -> None:
     assert "4/4 `PASSED`" in combined
     assert "BLOCKED: 3/4" in report
     assert "BLOCKED: 0/4" in report
-    assert "当前候选版本为 `1.0.0rc2` / `v1.0.0-rc.2`" in tasks
+    assert "当前候选版本为 `1.0.0rc3` / `v1.0.0-rc.3`" in tasks
     assert "实现待开始" not in releases
     assert "本任务尚未实现" not in tasks
     assert "T-608 仅设计审查已通过，尚未实现或验收" not in readme
@@ -44,7 +44,7 @@ def test_final_deepseek_report_is_passed_and_does_not_expose_sensitive_data() ->
     assert "4/4 `PASSED`" in report
 
 
-def test_candidate_release_tag_is_described_as_current_t608_evidence() -> None:
+def test_rc2_tag_is_preserved_while_rc3_is_the_current_candidate() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     releases = (ROOT / "docs/RELEASES.md").read_text(encoding="utf-8")
     tasks = (ROOT / "TASKS.md").read_text(encoding="utf-8")
@@ -60,5 +60,7 @@ def test_candidate_release_tag_is_described_as_current_t608_evidence() -> None:
 
     assert "v1.0.0-rc.2" in tags
     assert "Tag 尚未创建" not in combined
+    assert "v1.0.0-rc.3" in combined
+    assert "v1.0.0-rc.2` 标签保留不移动" in combined
     assert "T-608 已通过 Reviewer `PASS`" in combined
     assert "Docker post-fix 闭环获 Reviewer `PASS`" in combined

@@ -1,17 +1,16 @@
 # Changelog
 
-## Unreleased
+本文记录 RACS 已完成且有证据支持的项目变更。版本规划见 [RELEASES.md](RELEASES.md)。
 
-### Added
+## [1.0.0-rc.3] - 2026-08-20
 
-- T-608 Reviewer 最终审查 `PASS`：新增版本化 Agent 模式与会话 HTTP API、应用级共享受控工作流装配、UUID v4 幂等消息入口，以及消费者页面的 Fake/DeepSeek 模式、模型状态、可信引用和人工审批等待展示。消费者页面可经受控 HTTP Agent 路径显式使用已配置的 DeepSeek；DeepSeek 只能负责理解、受限计划和可信回复草稿，不能拥有工具、订单权限、资格、审批、写入或最终回复裁决权。未配置或模型失败时安全停止，不在同一会话伪装或静默切换为 Fake；T-701～T-706 未实现。
+### Changed
+
+- 创建新的本地候选 `v1.0.0-rc.3`（项目版本 `1.0.0rc3`），承载已经通过 Reviewer 的 T-601～T-608、Docker 修复、post-fix manifest v2 与 Docker 验证记录。既有 `v1.0.0-rc.2` 标签保留不移动；未推送远程，未创建正式 `v1.0.0` Tag 或远程 Release。
 
 ### Validation
 
-- T-608 最终真实 DeepSeek HTTP 评测：同一工作区 digest `ca171d5b816c25b515b2bc3fa940ece10aee94f35e5105961ce7a0ec03fa29f9` 下，`deepseek-v4-flash`、配置版本 `1`、数据集 `1.0.0` 于 `2026-08-11T10:35:36.103982+00:00` 的四条代表路径均为 `PASSED`。最终脱敏记录不含 API Key、推理链或敏感内部数据；此前 `BLOCKED 3/4` 与 `BLOCKED 0/4` 历史运行仍保留且不计为通过。本次不修改版本、Tag、远程或发布。
-- T-608 Release Manager 收尾复测：HTTP/API、审批、DeepSeek 错误注入、Agent workflow、工具和回复草稿相关专项 57 passed；全仓 Python 398 passed、1 skipped；文档 21 passed；Ruff format（153 个文件）/check、mypy（152 个源文件）、前端 Prettier/ESLint/Vitest（17 passed）及生产构建、`git diff --check` 均通过。保留 1 条既有 Starlette TestClient 弃用警告；未重跑真实模型，继续引用已审查的同一工作区 digest 4/4 脱敏记录。
-
-本文记录 RACS 已完成且有证据支持的项目变更。版本规划见 [RELEASES.md](RELEASES.md)。
+- 2026-08-20 最终门禁：`uv lock --check` 通过；Python 全仓 401 passed、1 skipped；rc.3 文档一致性专项 7 passed；Ruff format/check、mypy、前端 Prettier/ESLint/Vitest 和生产构建、`git diff --check` 均通过。Docker 运行闭环继续引用已获 Reviewer `PASS` 的、以 manifest v2 绑定的实际验证记录；Compose 中未注入 DeepSeek 凭据，因此真实模型 Docker 路径未执行且不计通过或失败。保留 1 条既有 Starlette TestClient 弃用警告。
 
 ## [1.0.0-rc.2] - 2026-08-13
 
