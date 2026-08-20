@@ -1,3 +1,4 @@
+import re
 import tomllib
 from pathlib import Path
 
@@ -19,7 +20,13 @@ def test_public_api_versions_match_the_single_project_version() -> None:
     assert create_mock_business_app().version == project_version
 
 
-def test_v1_local_release_is_recorded_without_remote_publication() -> None:
+def _capture(document: str, pattern: str) -> tuple[str, ...]:
+    match = re.search(pattern, document)
+    assert match, f"missing evidence matching: {pattern}"
+    return match.groups()
+
+
+def test_v1_release_keeps_historical_local_publication_record() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     releases = (ROOT / "docs" / "RELEASES.md").read_text(encoding="utf-8")
     changelog = (ROOT / "docs" / "CHANGELOG.md").read_text(encoding="utf-8")
@@ -29,8 +36,43 @@ def test_v1_local_release_is_recorded_without_remote_publication() -> None:
     assert "## [1.0.0]" in changelog
     assert "当前正式版本为 `1.0.0`" in combined
     assert "未推送远程" in combined
+    assert "本机当前未检测到 Docker CLI" not in readme
+    assert "正式 `v1.0.0` Tag 未重新执行 Compose 闭环" in readme
     assert "v1.0.0-rc.4" in releases
     assert "Docker 发布验证记录" in releases
+
+
+def test_readme_quantified_results_match_formal_v1_validation_record() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    validation_record = (ROOT / "docs" / "release-validation-v1.0.0-2026-07-28.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert _capture(readme, r"\| Python 全仓 \| `(\d+) passed / (\d+) skipped` \|") == _capture(
+        validation_record, r"Python 全仓 `(\d+) passed, (\d+) skipped`"
+    )
+    assert _capture(readme, r"\| 文档测试 \| `(\d+) passed` \|") == _capture(
+        validation_record, r"文档专项 `(\d+) passed`"
+    )
+    assert _capture(readme, r"\| 前端 Vitest \| `(\d+) passed` \|") == _capture(
+        validation_record, r"Vitest（(\d+) passed）"
+    )
+    assert _capture(readme, r"\| mypy \| 通过（(\d+) 个源文件） \|") == _capture(
+        validation_record, r"mypy（(\d+) 个源文件）"
+    )
+    assert _capture(readme, r"\| Docker/发布文档契约 \| `(\d+) passed`") == _capture(
+        validation_record, r"Docker/发布文档契约专项 `(\d+) passed`"
+    )
+
+
+def test_readme_distinguishes_pushed_tag_from_absent_github_release_page() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+    assert "https://github.com/Onlyblue02/recoverable-ai-customer-service" in readme
+    assert "https://github.com/Onlyblue02/recoverable-ai-customer-service/tree/v1.0.0" in readme
+    assert "Git Tag 已推送到" in readme
+    assert "当前尚未创建 GitHub Release 页面" in readme
+    assert "Tag 与 Release 页面" not in readme
 
 
 def test_t404_reviewer_pass_does_not_claim_v1_release() -> None:
