@@ -19,16 +19,17 @@ def test_public_api_versions_match_the_single_project_version() -> None:
     assert create_mock_business_app().version == project_version
 
 
-def test_v1_release_candidate_is_not_recorded_as_final_release() -> None:
+def test_v1_local_release_is_recorded_without_remote_publication() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     releases = (ROOT / "docs" / "RELEASES.md").read_text(encoding="utf-8")
     changelog = (ROOT / "docs" / "CHANGELOG.md").read_text(encoding="utf-8")
     tasks = (ROOT / "TASKS.md").read_text(encoding="utf-8")
 
-    assert "## [1.0.0]" not in changelog
-    assert "v1.0.0 已发布" not in "\n".join((readme, releases, changelog, tasks))
-    assert "v1.0.0-rc.2" in releases
-    assert "v0.5.0` 仍是最近正式版本" in releases
+    combined = "\n".join((readme, releases, changelog, tasks))
+    assert "## [1.0.0]" in changelog
+    assert "当前正式版本为 `1.0.0`" in combined
+    assert "未推送远程" in combined
+    assert "v1.0.0-rc.4" in releases
     assert "Docker 发布验证记录" in releases
 
 
@@ -44,7 +45,7 @@ def test_t404_reviewer_pass_does_not_claim_v1_release() -> None:
     assert "独立 Reviewer 审查 PASS" in t404_section
     assert "最终结论：PASS；允许创建 T-404 普通任务提交，当前不发布 `v1.0.0`" in report
     assert "T-404 已完成独立 Reviewer 审查 PASS" in changelog
-    assert "## [1.0.0]" not in changelog
+    assert "## [1.0.0]" in changelog
 
 
 def test_release_checks_require_actual_lock_and_compose_evidence() -> None:

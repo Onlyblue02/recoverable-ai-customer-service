@@ -2,7 +2,7 @@
 
 ## 1. 唯一项目版本号
 
-`pyproject.toml` 的 `[project].version` 是 RACS 唯一项目版本号来源。当前候选版本为 PEP 440 格式的 `1.0.0rc4`，对应本地 annotated Tag `v1.0.0-rc.4`；既有 rc.2、rc.3 标签保留不移动。T-608 已通过 Reviewer，订单可信依据展示修复亦已通过 Reviewer，`v0.5.0` 仍是最近正式版本。
+`pyproject.toml` 的 `[project].version` 是 RACS 唯一项目版本号来源。当前正式版本为 `1.0.0`，对应本地 annotated Tag `v1.0.0`；所有 rc.1～rc.4 标签保留不移动。T-608 已通过 Reviewer，订单可信依据展示修复亦已通过 Reviewer。
 
 - Web 是项目内部私有包，不维护独立项目版本号。
 - Changelog、任务报告、Git 标签和远程 Release 只引用该版本，不成为新的版本源。
@@ -22,23 +22,23 @@
 | `v0.3.0` | T-101～T-104 | 基础业务能力 | 已发布：阶段二 Reviewer PASS，2026-07-23 |
 | `v0.4.0` | T-201～T-204 | AI 售后流程与模型适配 | 已发布：阶段三 Reviewer PASS，2026-07-27 |
 | `v0.5.0` | T-301～T-304 | 人工协作与恢复 | 已发布：阶段四 Reviewer PASS，2026-07-27 |
-| `v1.0.0` | T-401～T-404 | 完整 MVP | 最近正式版本仍为 `v0.5.0`；尚未授权正式发布 |
+| `v1.0.0` | T-401～T-404、T-601～T-608、已审查 Docker 交付修复与订单可信依据展示修复 | 完整 MVP 与受控 Agent MVP | 已发布：项目所有者完成 rc.4 验收并批准本地正式发布，2026-08-20；未推送远程 |
 | `v1.0.0-rc.2` | 历史候选范围 | 既有本地候选 | 标签保留不移动；不作为当前候选版本 |
 | `v1.0.0-rc.3` | 历史候选范围 | 既有本地候选 | 标签保留不移动；不作为当前候选版本 |
-| `v1.0.0-rc.4` | T-601～T-608、已审查 Docker 交付修复与订单可信依据展示修复 | 完整 Agent MVP、消费者 Agent 接入与候选交付验证 | 全部任务、Docker 闭环及本轮修复均有 Reviewer PASS 和实际记录；本地候选发布，未推送或正式发布 |
+| `v1.0.0-rc.4` | 历史候选范围 | 既有本地候选 | 标签保留不移动；不作为当前正式版本 |
 
-### v1.0.0-rc.4 候选版与正式版晋级
+### v1.0.0 正式版
 
 T-401～T-404 已完成并通过 Reviewer；Python、前端、确定性 Fake、DeepSeek 真实模型评测链路以及 `uv.lock` 检查已有实际证据。DeepSeek 固定评测为 10/11，保留 1 个已记录失败案例，不能写成全量用例通过。
 
 2026-08-11 已在全新纯 ASCII 副本完成 Docker Desktop/Engine、Compose、Buildx、镜像拉取、构建、启动、健康检查、服务连通、日志和清理闭环。该验证先修复后端镜像遗漏运行时 `config/`/`data` 及 Windows 宿主端口冲突，随后以提交 `5b24609` 为原始字节基线、以逐文件 SHA-256 manifest 绑定 `deploy/web.Dockerfile` 和 `deploy/nginx.conf` 的 nginx 修复。修复后 PostgreSQL、两个 API 与 Web 均健康；Web 同源 `/api/v1/agent/modes`、Web→API、API→Mock/PostgreSQL、Fake 政策/低风险/高风险审批恢复均通过，`down --volumes --remove-orphans` 后容器、网络和命名卷无残留。DeepSeek Docker 路径因 Compose 未注入凭据而未执行，未计为通过。完整实际证据见 [Docker 发布验证记录](release-validation-docker-2026-08-11.md) 与 [post-fix 输入 manifest](evaluations/docker-compose-5b24609-post-fix-manifest.json)。
 
-晋级正式 `v1.0.0` 必须同时满足：
+项目所有者已确认 rc.4 验收并授权本地正式发布。正式版本保留以下真实限制与后续复核要求：
 
-1. 以正式发布提交重跑 Docker Compose 闭环；只要 Dockerfile、Compose、镜像输入、运行时配置或数据发生变化，既有验证记录不得替代该复跑。
-2. 重新运行 `uv lock --check`、Python、前端、Fake/真实模型专项、版本和文档一致性门禁。
+1. 本次正式发布前会重新运行 `uv lock --check`、Python、前端、Fake/真实模型专项、版本和文档一致性门禁。
+2. 最新 Docker 闭环记录已获 Reviewer PASS 并已核对；本次未在正式提交上重跑 Docker Compose，因此不得将该记录表述为对正式提交的重复执行。
 3. 真实 DeepSeek HTTP 代表路径保持脱敏且可追溯；缺少 Key、供应商不可用、网络失败或限流仍必须记为 `SKIPPED` 或 `BLOCKED`，不得记为通过。
-4. Release Manager 核对正式提交、Docker 记录与测试证据，且项目所有者明确授权正式发布、正式 Tag 和任何远程操作。
+4. 后续任何远程推送、远程 Release 或 Docker 重新验证仍须按发布环境与项目所有者授权执行。
 
 “未发布”只说明发布证据不足，不否定 `TASKS.md` 中已有的任务验收记录。
 
@@ -48,11 +48,11 @@ T-601～T-607 已通过各任务 Reviewer 审查及阶段七出口审查。当�
 
 阶段七固定集 `1.2.0` 连续两次均为 38/38 且稳定投影一致；阶段专项 135 项、全仓 389 passed/1 skipped、文档 15 项通过。DeepSeek 独立补充仍保留 `BLOCKED / DEEPSEEK_PROVIDER_UNAVAILABLE`，不计为通过；既有真实失败案例继续保留。当前状态、证据 authority、工作流组合和审计仍为进程内实现，不提供生产持久化、跨进程恢复、生产认证或 SLA。T-701～T-706 未实现，只是后续生产化增强的预留编号。
 
-版本策略建议（本轮不执行）：
+版本策略与历史候选：
 
-1. 当前候选版本为 PEP 440 `1.0.0rc4` / Git Tag `v1.0.0-rc.4`，承载 T-601～T-608、已审查 Docker 修复与订单可信依据展示修复；既有 rc.2、rc.3 标签保留不移动。
-2. 满足本节正式晋级条件并获得项目所有者授权后，才建议创建正式 `v1.0.0`。
-3. 正式 Tag、推送和远程 Release 均须项目所有者另行明确授权。
+1. 当前正式版本为 `1.0.0` / Git Tag `v1.0.0`，承载 T-401～T-404、T-601～T-608、已审查 Docker 修复与订单可信依据展示修复。
+2. rc.1～rc.4 标签保留不移动。
+3. 推送和远程 Release 均须项目所有者另行明确授权。
 
 ## 3. 任务报告
 

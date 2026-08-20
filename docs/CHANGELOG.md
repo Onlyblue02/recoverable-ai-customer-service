@@ -2,6 +2,20 @@
 
 本文记录 RACS 已完成且有证据支持的项目变更。版本规划见 [RELEASES.md](RELEASES.md)。
 
+## [1.0.0] - 2026-08-20
+
+### Released
+
+- 项目所有者完成 `v1.0.0-rc.4` 验收并批准本地正式发布。正式版包含 T-401～T-404、T-601～T-608、已审查 Docker 交付修复、post-fix manifest v2、Docker 验证记录和订单可信依据展示修复；不推送远程，全部 RC 标签保留不移动。
+
+### Validation
+
+- 正式发布提交的实际最终门禁与 Docker 记录核对结果见 [v1.0.0 发布验证记录](release-validation-v1.0.0-2026-07-28.md)。
+
+### Known limitations
+
+- 当前仍是进程内合成 Agent MVP，不提供生产持久化、跨进程恢复、生产认证、SLA 或真实退款执行；T-701～T-706 未实现。Docker 最新闭环有 Reviewer PASS 和实际记录，但本次未在正式提交上重跑 Compose；真实 DeepSeek Docker 路径因未注入凭据未执行，不计通过或失败。
+
 ## [1.0.0-rc.4] - 2026-08-20
 
 ### Changed

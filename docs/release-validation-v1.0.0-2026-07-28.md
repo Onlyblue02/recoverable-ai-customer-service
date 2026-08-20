@@ -1,5 +1,17 @@
 # v1.0.0 发布环境验证记录（2026-07-28）
 
+## v1.0.0 正式发布复核（2026-08-20）
+
+- 项目所有者已完成 `v1.0.0-rc.4` 验收并明确授权创建本地正式 `v1.0.0`；该授权不包含远程推送或远程 Release。
+- 正式提交范围仅包括已通过 Reviewer 的 T-401～T-404、T-601～T-608、Docker 交付修复、post-fix manifest v2、Docker 验证记录和订单可信依据展示修复。订单公开依据仅包含 Gate 放行的订单号、已确认状态和固定来源；不包含 permit、Evidence ID、原始工具参数或推理链。
+- 最新 Docker 闭环实际记录为 [2026-08-11 Docker 发布验证记录](release-validation-docker-2026-08-11.md)：构建、四服务健康、关键连通、日志和清理均获 Reviewer `PASS`，post-fix manifest v2 绑定实际输入。本次正式发布会核对该记录及其 manifest，但不会将其写成对正式提交的再次执行；本机当前 Docker CLI 不可用，Compose 未重跑。
+- 本次实际最终门禁：`uv lock --check` 通过；Python 全仓 `404 passed, 1 skipped`；文档专项 `24 passed`；Docker/发布文档契约专项 `13 passed`；Ruff format/check、mypy（152 个源文件）、前端 Prettier/ESLint/Vitest（18 passed）及生产构建、`git diff --check` 均通过。保留 1 条既有 Starlette TestClient 弃用警告，以及“真实 DeepSeek Docker 路径未执行”的事实。
+
+### 已知限制
+
+- 当前仍是进程内合成 Agent MVP，不提供生产持久化、跨进程恢复、生产认证、SLA 或真实退款执行；T-701～T-706 未实现。
+- 真正的 Docker Compose 闭环最后一次实测不在本次正式提交上，后续交付环境复验应使用正式 Tag 重跑并保存新日志；这不是本次运行成功的声明。
+
 ## v1.0.0-rc.1 决定（2026-07-29）
 
 - T-401～T-404 已完成并通过 Reviewer。
